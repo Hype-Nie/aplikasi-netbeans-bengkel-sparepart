@@ -27,7 +27,7 @@ public class SparepartPanelView extends javax.swing.JPanel {
         styleTextField(partCodeField); styleTextField(nameField); styleTextField(categoryField);
         styleTextField(unitField); styleTextField(purchasePriceField); styleTextField(sellingPriceField);
         styleTextField(stockField); styleTextField(minStockField); styleTextField(searchField);
-        styleSecondaryButton(newButton); styleSecondaryButton(editButton);
+        styleSecondaryButton(newButton);
         styleSecondaryButton(deleteButton); styleSecondaryButton(refreshButton);
         stylePrimaryButton(saveButton);
 
@@ -39,6 +39,16 @@ public class SparepartPanelView extends javax.swing.JPanel {
         sorter = new TableRowSorter<>(tableModel);
         table.setRowSorter(sorter);
         UiTheme.styleTable(table);
+
+        // Auto-fill form when a table row is clicked
+        table.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                Sparepart selected = getSelectedRowAsSparepart();
+                if (selected != null) {
+                    setFormData(selected);
+                }
+            }
+        });
     }
 
     private void styleTextField(javax.swing.JTextField f) {
@@ -47,16 +57,15 @@ public class SparepartPanelView extends javax.swing.JPanel {
     }
     private void stylePrimaryButton(javax.swing.JButton b) {
         b.setFont(UiTheme.FONT_BODY); b.setForeground(java.awt.Color.WHITE); b.setBackground(UiTheme.PRIMARY);
-        b.setBorder(BorderFactory.createEmptyBorder(10,16,10,16)); b.setFocusPainted(false); b.setOpaque(true);
+        b.setBorder(BorderFactory.createEmptyBorder(10,16,10,16)); b.setFocusPainted(false); b.setContentAreaFilled(false); b.setOpaque(true);
     }
     private void styleSecondaryButton(javax.swing.JButton b) {
         b.setFont(UiTheme.FONT_BODY); b.setForeground(UiTheme.TEXT_PRIMARY); b.setBackground(UiTheme.SIDEBAR_BUTTON);
-        b.setBorder(BorderFactory.createEmptyBorder(10,16,10,16)); b.setFocusPainted(false); b.setOpaque(true);
+        b.setBorder(BorderFactory.createEmptyBorder(10,16,10,16)); b.setFocusPainted(false); b.setContentAreaFilled(false); b.setOpaque(true);
     }
 
     public void addNewListener(ActionListener l) { newButton.addActionListener(l); }
     public void addSaveListener(ActionListener l) { saveButton.addActionListener(l); }
-    public void addEditListener(ActionListener l) { editButton.addActionListener(l); }
     public void addDeleteListener(ActionListener l) { deleteButton.addActionListener(l); }
     public void addRefreshListener(ActionListener l) { refreshButton.addActionListener(l); }
     public void addSearchListener(DocumentListener l) { searchField.getDocument().addDocumentListener(l); }
@@ -159,7 +168,6 @@ public class SparepartPanelView extends javax.swing.JPanel {
         refreshButton = new javax.swing.JButton();
         newButton = new javax.swing.JButton();
         saveButton = new javax.swing.JButton();
-        editButton = new javax.swing.JButton();
         deleteButton = new javax.swing.JButton();
 
         setLayout(new java.awt.BorderLayout(14, 14));
@@ -268,7 +276,6 @@ public class SparepartPanelView extends javax.swing.JPanel {
         refreshButton.setText("Refresh"); actionPanel.add(refreshButton);
         newButton.setText("Baru"); actionPanel.add(newButton);
         saveButton.setText("Simpan"); actionPanel.add(saveButton);
-        editButton.setText("Ambil Data"); actionPanel.add(editButton);
         deleteButton.setText("Hapus"); actionPanel.add(deleteButton);
         add(actionPanel, java.awt.BorderLayout.SOUTH);
     }// </editor-fold>//GEN-END:initComponents
@@ -278,7 +285,6 @@ public class SparepartPanelView extends javax.swing.JPanel {
     private javax.swing.JTextField categoryField;
     private javax.swing.JLabel categoryLabel;
     private javax.swing.JButton deleteButton;
-    private javax.swing.JButton editButton;
     private javax.swing.JPanel formFieldsPanel;
     private javax.swing.JPanel formPanel;
     private javax.swing.JLabel formTitleLabel;

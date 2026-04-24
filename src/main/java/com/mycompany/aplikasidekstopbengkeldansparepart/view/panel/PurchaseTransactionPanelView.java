@@ -44,11 +44,11 @@ public class PurchaseTransactionPanelView extends javax.swing.JPanel {
     }
     private void stylePrimaryButton(javax.swing.JButton b) {
         b.setFont(UiTheme.FONT_BODY); b.setForeground(java.awt.Color.WHITE); b.setBackground(UiTheme.PRIMARY);
-        b.setBorder(BorderFactory.createEmptyBorder(10,16,10,16)); b.setFocusPainted(false); b.setOpaque(true);
+        b.setBorder(BorderFactory.createEmptyBorder(10,16,10,16)); b.setFocusPainted(false); b.setContentAreaFilled(false); b.setOpaque(true);
     }
     private void styleSecondaryButton(javax.swing.JButton b) {
         b.setFont(UiTheme.FONT_BODY); b.setForeground(UiTheme.TEXT_PRIMARY); b.setBackground(UiTheme.SIDEBAR_BUTTON);
-        b.setBorder(BorderFactory.createEmptyBorder(10,16,10,16)); b.setFocusPainted(false); b.setOpaque(true);
+        b.setBorder(BorderFactory.createEmptyBorder(10,16,10,16)); b.setFocusPainted(false); b.setContentAreaFilled(false); b.setOpaque(true);
     }
 
     public void addAddItemListener(ActionListener l) { addItemButton.addActionListener(l); }
@@ -200,20 +200,49 @@ public class PurchaseTransactionPanelView extends javax.swing.JPanel {
         detailPanel.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(216, 222, 230)), javax.swing.BorderFactory.createEmptyBorder(12, 12, 12, 12)));
         detailPanel.setLayout(new java.awt.BorderLayout(10, 10));
         itemInputPanel.setOpaque(false);
-        itemInputPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 0));
+        itemInputPanel.setLayout(new java.awt.GridBagLayout());
+        java.awt.GridBagConstraints gbc;
+
         detailTitleLabel.setFont(new java.awt.Font("Segoe UI", 1, 14));
         detailTitleLabel.setText("Detail Item Pembelian");
-        itemInputPanel.add(detailTitleLabel);
-        partCodeLabel.setText("Kode"); itemInputPanel.add(partCodeLabel);
-        partCodeField.setColumns(10); itemInputPanel.add(partCodeField);
-        partNameLabel.setText("Nama"); itemInputPanel.add(partNameLabel);
-        partNameField.setColumns(20); itemInputPanel.add(partNameField);
-        qtyLabel.setText("Qty"); itemInputPanel.add(qtyLabel);
-        qtyField.setColumns(6); itemInputPanel.add(qtyField);
-        unitPriceLabel.setText("Harga"); itemInputPanel.add(unitPriceLabel);
-        unitPriceField.setColumns(10); itemInputPanel.add(unitPriceField);
-        addItemButton.setText("Tambah Item"); itemInputPanel.add(addItemButton);
-        removeItemButton.setText("Hapus Item"); itemInputPanel.add(removeItemButton);
+        gbc = new java.awt.GridBagConstraints(); gbc.gridx=0; gbc.gridy=0; gbc.gridwidth=java.awt.GridBagConstraints.REMAINDER; gbc.anchor=java.awt.GridBagConstraints.WEST; gbc.insets=new java.awt.Insets(0,4,8,4);
+        itemInputPanel.add(detailTitleLabel, gbc);
+
+        partCodeLabel.setText("Kode");
+        gbc = new java.awt.GridBagConstraints(); gbc.gridx=0; gbc.gridy=1; gbc.anchor=java.awt.GridBagConstraints.WEST; gbc.insets=new java.awt.Insets(4,4,4,4);
+        itemInputPanel.add(partCodeLabel, gbc);
+        partCodeField.setColumns(10);
+        gbc = new java.awt.GridBagConstraints(); gbc.gridx=1; gbc.gridy=1; gbc.fill=java.awt.GridBagConstraints.HORIZONTAL; gbc.weightx=0.3; gbc.insets=new java.awt.Insets(4,4,4,4);
+        itemInputPanel.add(partCodeField, gbc);
+
+        partNameLabel.setText("Nama");
+        gbc = new java.awt.GridBagConstraints(); gbc.gridx=2; gbc.gridy=1; gbc.anchor=java.awt.GridBagConstraints.WEST; gbc.insets=new java.awt.Insets(4,4,4,4);
+        itemInputPanel.add(partNameLabel, gbc);
+        partNameField.setColumns(20);
+        gbc = new java.awt.GridBagConstraints(); gbc.gridx=3; gbc.gridy=1; gbc.fill=java.awt.GridBagConstraints.HORIZONTAL; gbc.weightx=1.0; gbc.insets=new java.awt.Insets(4,4,4,4);
+        itemInputPanel.add(partNameField, gbc);
+
+        qtyLabel.setText("Qty");
+        gbc = new java.awt.GridBagConstraints(); gbc.gridx=0; gbc.gridy=2; gbc.anchor=java.awt.GridBagConstraints.WEST; gbc.insets=new java.awt.Insets(4,4,4,4);
+        itemInputPanel.add(qtyLabel, gbc);
+        qtyField.setColumns(6);
+        gbc = new java.awt.GridBagConstraints(); gbc.gridx=1; gbc.gridy=2; gbc.fill=java.awt.GridBagConstraints.HORIZONTAL; gbc.insets=new java.awt.Insets(4,4,4,4);
+        itemInputPanel.add(qtyField, gbc);
+
+        unitPriceLabel.setText("Harga");
+        gbc = new java.awt.GridBagConstraints(); gbc.gridx=2; gbc.gridy=2; gbc.anchor=java.awt.GridBagConstraints.WEST; gbc.insets=new java.awt.Insets(4,4,4,4);
+        itemInputPanel.add(unitPriceLabel, gbc);
+        unitPriceField.setColumns(10);
+        gbc = new java.awt.GridBagConstraints(); gbc.gridx=3; gbc.gridy=2; gbc.fill=java.awt.GridBagConstraints.HORIZONTAL; gbc.weightx=1.0; gbc.insets=new java.awt.Insets(4,4,4,4);
+        itemInputPanel.add(unitPriceField, gbc);
+
+        addItemButton.setText("Tambah Item");
+        gbc = new java.awt.GridBagConstraints(); gbc.gridx=4; gbc.gridy=1; gbc.insets=new java.awt.Insets(4,4,4,4);
+        itemInputPanel.add(addItemButton, gbc);
+        removeItemButton.setText("Hapus Item");
+        gbc = new java.awt.GridBagConstraints(); gbc.gridx=4; gbc.gridy=2; gbc.insets=new java.awt.Insets(4,4,4,4);
+        itemInputPanel.add(removeItemButton, gbc);
+
         detailPanel.add(itemInputPanel, java.awt.BorderLayout.NORTH);
         detailScrollPane.setViewportView(detailTable);
         detailPanel.add(detailScrollPane, java.awt.BorderLayout.CENTER);

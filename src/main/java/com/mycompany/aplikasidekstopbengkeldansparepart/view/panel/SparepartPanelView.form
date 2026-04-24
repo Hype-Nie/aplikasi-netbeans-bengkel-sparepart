@@ -19,9 +19,8 @@
   <SubComponents>
     <Container class="javax.swing.JPanel" name="formPanel">
       <Properties>
-        <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor"><Color blue="255" green="255" red="255" type="rgb"/></Property>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
-          <Border info="org.netbeans.modules.form.compat2.border.CompoundBorderInfo"><CompoundBorder><Border info="org.netbeans.modules.form.compat2.border.LineBorderInfo"><LineBorder thickness="1"><Color blue="230" green="222" red="216" type="rgb"/></LineBorder></Border><Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo"><EmptyBorder bottom="12" left="12" right="12" top="12"/></Border></CompoundBorder></Border>
+          <Border info="org.netbeans.modules.form.compat2.border.CompoundBorderInfo"><CompoundBorder><Border info="org.netbeans.modules.form.compat2.border.LineBorderInfo"><LineBorder thickness="1"/></Border><Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo"><EmptyBorder bottom="12" left="12" right="12" top="12"/></Border></CompoundBorder></Border>
         </Property>
       </Properties>
       <Constraints><Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout" value="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout$BorderConstraintsDescription"><BorderConstraints direction="North"/></Constraint></Constraints>
@@ -58,8 +57,7 @@
     </Container>
     <Container class="javax.swing.JPanel" name="tablePanel">
       <Properties>
-        <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor"><Color blue="255" green="255" red="255" type="rgb"/></Property>
-        <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor"><Border info="org.netbeans.modules.form.compat2.border.CompoundBorderInfo"><CompoundBorder><Border info="org.netbeans.modules.form.compat2.border.LineBorderInfo"><LineBorder thickness="1"><Color blue="230" green="222" red="216" type="rgb"/></LineBorder></Border><Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo"><EmptyBorder bottom="12" left="12" right="12" top="12"/></Border></CompoundBorder></Border></Property>
+        <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor"><Border info="org.netbeans.modules.form.compat2.border.CompoundBorderInfo"><CompoundBorder><Border info="org.netbeans.modules.form.compat2.border.LineBorderInfo"><LineBorder thickness="1"/></Border><Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo"><EmptyBorder bottom="12" left="12" right="12" top="12"/></Border></CompoundBorder></Border></Property>
       </Properties>
       <Constraints><Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout" value="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout$BorderConstraintsDescription"><BorderConstraints direction="Center"/></Constraint></Constraints>
       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"><Property name="horizontalGap" type="int" value="10"/><Property name="verticalGap" type="int" value="10"/></Layout>
@@ -89,7 +87,6 @@
         <Component class="javax.swing.JButton" name="refreshButton"><Properties><Property name="text" type="java.lang.String" value="Refresh"/></Properties></Component>
         <Component class="javax.swing.JButton" name="newButton"><Properties><Property name="text" type="java.lang.String" value="Baru"/></Properties></Component>
         <Component class="javax.swing.JButton" name="saveButton"><Properties><Property name="text" type="java.lang.String" value="Simpan"/></Properties></Component>
-        <Component class="javax.swing.JButton" name="editButton"><Properties><Property name="text" type="java.lang.String" value="Ambil Data"/></Properties></Component>
         <Component class="javax.swing.JButton" name="deleteButton"><Properties><Property name="text" type="java.lang.String" value="Hapus"/></Properties></Component>
       </SubComponents>
     </Container>

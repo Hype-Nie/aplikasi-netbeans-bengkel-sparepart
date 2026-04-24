@@ -32,7 +32,6 @@ public class SupplierPanelView extends javax.swing.JPanel {
         styleTextField(searchField);
 
         styleSecondaryButton(newButton);
-        styleSecondaryButton(editButton);
         styleSecondaryButton(deleteButton);
         styleSecondaryButton(refreshButton);
         stylePrimaryButton(saveButton);
@@ -48,6 +47,16 @@ public class SupplierPanelView extends javax.swing.JPanel {
         sorter = new TableRowSorter<>(tableModel);
         table.setRowSorter(sorter);
         UiTheme.styleTable(table);
+
+        // Auto-fill form when a table row is clicked
+        table.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                Supplier selected = getSelectedRowAsSupplier();
+                if (selected != null) {
+                    setFormData(selected);
+                }
+            }
+        });
     }
 
     private void styleTextField(javax.swing.JTextField field) {
@@ -64,6 +73,7 @@ public class SupplierPanelView extends javax.swing.JPanel {
         button.setBackground(UiTheme.PRIMARY);
         button.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16));
         button.setFocusPainted(false);
+        button.setContentAreaFilled(false);
         button.setOpaque(true);
     }
 
@@ -73,12 +83,12 @@ public class SupplierPanelView extends javax.swing.JPanel {
         button.setBackground(UiTheme.SIDEBAR_BUTTON);
         button.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16));
         button.setFocusPainted(false);
+        button.setContentAreaFilled(false);
         button.setOpaque(true);
     }
 
     public void addNewListener(ActionListener listener) { newButton.addActionListener(listener); }
     public void addSaveListener(ActionListener listener) { saveButton.addActionListener(listener); }
-    public void addEditListener(ActionListener listener) { editButton.addActionListener(listener); }
     public void addDeleteListener(ActionListener listener) { deleteButton.addActionListener(listener); }
     public void addRefreshListener(ActionListener listener) { refreshButton.addActionListener(listener); }
     public void addSearchListener(DocumentListener listener) { searchField.getDocument().addDocumentListener(listener); }
@@ -167,7 +177,6 @@ public class SupplierPanelView extends javax.swing.JPanel {
         refreshButton = new javax.swing.JButton();
         newButton = new javax.swing.JButton();
         saveButton = new javax.swing.JButton();
-        editButton = new javax.swing.JButton();
         deleteButton = new javax.swing.JButton();
 
         setLayout(new java.awt.BorderLayout(14, 14));
@@ -291,7 +300,6 @@ public class SupplierPanelView extends javax.swing.JPanel {
         refreshButton.setText("Refresh"); actionPanel.add(refreshButton);
         newButton.setText("Baru"); actionPanel.add(newButton);
         saveButton.setText("Simpan"); actionPanel.add(saveButton);
-        editButton.setText("Ambil Data"); actionPanel.add(editButton);
         deleteButton.setText("Hapus"); actionPanel.add(deleteButton);
 
         add(actionPanel, java.awt.BorderLayout.SOUTH);
@@ -302,7 +310,6 @@ public class SupplierPanelView extends javax.swing.JPanel {
     private javax.swing.JTextField addressField;
     private javax.swing.JLabel addressLabel;
     private javax.swing.JButton deleteButton;
-    private javax.swing.JButton editButton;
     private javax.swing.JTextField emailField;
     private javax.swing.JLabel emailLabel;
     private javax.swing.JPanel formFieldsPanel;

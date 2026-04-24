@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
@@ -34,7 +35,6 @@ public class CustomerPanelView extends javax.swing.JPanel {
 
         // Style buttons
         styleSecondaryButton(newButton);
-        styleSecondaryButton(editButton);
         styleSecondaryButton(deleteButton);
         styleSecondaryButton(refreshButton);
         stylePrimaryButton(saveButton);
@@ -51,6 +51,16 @@ public class CustomerPanelView extends javax.swing.JPanel {
         sorter = new TableRowSorter<>(tableModel);
         table.setRowSorter(sorter);
         UiTheme.styleTable(table);
+
+        // Auto-fill form when a table row is clicked
+        table.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                Customer selected = getSelectedRowAsCustomer();
+                if (selected != null) {
+                    setFormData(selected);
+                }
+            }
+        });
     }
 
     private void styleTextField(javax.swing.JTextField field) {
@@ -68,6 +78,7 @@ public class CustomerPanelView extends javax.swing.JPanel {
         button.setBackground(UiTheme.PRIMARY);
         button.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16));
         button.setFocusPainted(false);
+        button.setContentAreaFilled(false);
         button.setOpaque(true);
     }
 
@@ -77,6 +88,7 @@ public class CustomerPanelView extends javax.swing.JPanel {
         button.setBackground(UiTheme.SIDEBAR_BUTTON);
         button.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16));
         button.setFocusPainted(false);
+        button.setContentAreaFilled(false);
         button.setOpaque(true);
     }
 
@@ -88,10 +100,6 @@ public class CustomerPanelView extends javax.swing.JPanel {
 
     public void addSaveListener(ActionListener listener) {
         saveButton.addActionListener(listener);
-    }
-
-    public void addEditListener(ActionListener listener) {
-        editButton.addActionListener(listener);
     }
 
     public void addDeleteListener(ActionListener listener) {
@@ -222,7 +230,6 @@ public class CustomerPanelView extends javax.swing.JPanel {
         refreshButton = new javax.swing.JButton();
         newButton = new javax.swing.JButton();
         saveButton = new javax.swing.JButton();
-        editButton = new javax.swing.JButton();
         deleteButton = new javax.swing.JButton();
 
         setLayout(new java.awt.BorderLayout(14, 14));
@@ -364,9 +371,6 @@ public class CustomerPanelView extends javax.swing.JPanel {
         saveButton.setText("Simpan");
         actionPanel.add(saveButton);
 
-        editButton.setText("Ambil Data");
-        actionPanel.add(editButton);
-
         deleteButton.setText("Hapus");
         actionPanel.add(deleteButton);
 
@@ -380,7 +384,6 @@ public class CustomerPanelView extends javax.swing.JPanel {
     private javax.swing.JTextField codeField;
     private javax.swing.JLabel codeLabel;
     private javax.swing.JButton deleteButton;
-    private javax.swing.JButton editButton;
     private javax.swing.JPanel formFieldsPanel;
     private javax.swing.JPanel formPanel;
     private javax.swing.JLabel formTitleLabel;
