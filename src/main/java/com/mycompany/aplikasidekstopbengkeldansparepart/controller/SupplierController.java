@@ -23,7 +23,6 @@ public class SupplierController {
     private void bindActions() {
         view.addNewListener(e -> view.clearForm());
         view.addSaveListener(e -> handleSave());
-        view.addEditListener(e -> handleEdit());
         view.addDeleteListener(e -> handleDelete());
         view.addRefreshListener(e -> loadData());
         view.addSearchListener((SimpleDocumentListener) event -> view.applySearchFilter(view.getSearchText()));
@@ -63,15 +62,7 @@ public class SupplierController {
         }
     }
 
-    private void handleEdit() {
-        Supplier selectedSupplier = view.getSelectedRowAsSupplier();
-        if (selectedSupplier == null) {
-            JOptionPane.showMessageDialog(view, "Pilih data supplier dari tabel terlebih dahulu.");
-            return;
-        }
 
-        view.setFormData(selectedSupplier);
-    }
 
     private void handleDelete() {
         Integer selectedId = view.getSelectedRowId();

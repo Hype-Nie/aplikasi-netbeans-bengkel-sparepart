@@ -130,6 +130,7 @@ public class AdminDashboardView extends javax.swing.JFrame {
         btn.setBackground(UiTheme.SIDEBAR_BUTTON);
         btn.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
         btn.setFocusPainted(false);
+        btn.setContentAreaFilled(false);
         btn.setOpaque(true);
         btn.setAlignmentX(0.0f);
         btn.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 44));
@@ -138,7 +139,7 @@ public class AdminDashboardView extends javax.swing.JFrame {
 
     private void styleSecondaryButton(javax.swing.JButton b) {
         b.setFont(UiTheme.FONT_BODY); b.setForeground(UiTheme.TEXT_PRIMARY); b.setBackground(UiTheme.SIDEBAR_BUTTON);
-        b.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16)); b.setFocusPainted(false); b.setOpaque(true);
+        b.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16)); b.setFocusPainted(false); b.setContentAreaFilled(false); b.setOpaque(true);
     }
 
     @SuppressWarnings("unchecked")
