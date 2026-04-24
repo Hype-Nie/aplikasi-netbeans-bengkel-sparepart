@@ -39,6 +39,18 @@ public class LoginView extends javax.swing.JFrame {
 
     private void customInit() {
         // Apply UiTheme styling that can't be set in the designer
+        brandingPanel.setBackground(new java.awt.Color(10, 87, 166));
+        brandTitle.setForeground(java.awt.Color.WHITE);
+        brandSubtitle.setForeground(new java.awt.Color(225, 239, 255));
+        contentPanel.setBackground(java.awt.Color.WHITE);
+        cardPanel.setBackground(java.awt.Color.WHITE);
+        cardPanel.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createLineBorder(new java.awt.Color(216, 222, 230)),
+                javax.swing.BorderFactory.createEmptyBorder(30, 28, 30, 28)));
+        formTitle.setForeground(new java.awt.Color(22, 28, 36));
+        formSubTitle.setForeground(new java.awt.Color(94, 109, 124));
+        demoInfo.setForeground(new java.awt.Color(94, 109, 124));
+
         usernameField.setFont(UiTheme.FONT_BODY);
         usernameField.setMargin(UiTheme.FIELD_INSETS);
         usernameField.setBorder(BorderFactory.createCompoundBorder(
@@ -86,12 +98,10 @@ public class LoginView extends javax.swing.JFrame {
         setMinimumSize(new java.awt.Dimension(820, 500));
         getContentPane().setLayout(new java.awt.BorderLayout());
 
-        brandingPanel.setBackground(new java.awt.Color(10, 87, 166));
         brandingPanel.setPreferredSize(new java.awt.Dimension(360, 500));
         brandingPanel.setLayout(new java.awt.GridBagLayout());
 
         brandTitle.setFont(new java.awt.Font("Segoe UI", 1, 40)); // NOI18N
-        brandTitle.setForeground(new java.awt.Color(255, 255, 255));
         brandTitle.setText("BengkelPro");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -100,7 +110,6 @@ public class LoginView extends javax.swing.JFrame {
         brandingPanel.add(brandTitle, gridBagConstraints);
 
         brandSubtitle.setFont(new java.awt.Font("Segoe UI", 0, 15)); // NOI18N
-        brandSubtitle.setForeground(new java.awt.Color(225, 239, 255));
         brandSubtitle.setText("Aplikasi Desktop Bengkel & Sparepart");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -109,16 +118,13 @@ public class LoginView extends javax.swing.JFrame {
 
         getContentPane().add(brandingPanel, java.awt.BorderLayout.WEST);
 
-        contentPanel.setBackground(new java.awt.Color(255, 255, 255));
         contentPanel.setLayout(new java.awt.GridBagLayout());
 
-        cardPanel.setBackground(new java.awt.Color(255, 255, 255));
-        cardPanel.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(216, 222, 230)), javax.swing.BorderFactory.createEmptyBorder(30, 28, 30, 28)));
+        cardPanel.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), javax.swing.BorderFactory.createEmptyBorder(30, 28, 30, 28)));
         cardPanel.setPreferredSize(new java.awt.Dimension(380, 360));
         cardPanel.setLayout(new java.awt.GridBagLayout());
 
         formTitle.setFont(new java.awt.Font("Segoe UI", 1, 26)); // NOI18N
-        formTitle.setForeground(new java.awt.Color(22, 28, 36));
         formTitle.setText("Login Admin");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -128,7 +134,6 @@ public class LoginView extends javax.swing.JFrame {
         cardPanel.add(formTitle, gridBagConstraints);
 
         formSubTitle.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        formSubTitle.setForeground(new java.awt.Color(94, 109, 124));
         formSubTitle.setText("Masuk dengan akun admin dari database");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -174,7 +179,6 @@ public class LoginView extends javax.swing.JFrame {
         cardPanel.add(passwordField, gridBagConstraints);
 
         demoInfo.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
-        demoInfo.setForeground(new java.awt.Color(94, 109, 124));
         demoInfo.setText("Default seed: admin / admin123");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;

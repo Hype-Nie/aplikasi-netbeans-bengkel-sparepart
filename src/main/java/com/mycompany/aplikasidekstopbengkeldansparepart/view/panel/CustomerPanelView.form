@@ -20,16 +20,11 @@
   <SubComponents>
     <Container class="javax.swing.JPanel" name="formPanel">
       <Properties>
-        <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-          <Color blue="255" green="255" red="255" type="rgb"/>
-        </Property>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.CompoundBorderInfo">
             <CompoundBorder>
               <Border info="org.netbeans.modules.form.compat2.border.LineBorderInfo">
-                <LineBorder thickness="1">
-                  <Color blue="230" green="222" red="216" type="rgb"/>
-                </LineBorder>
+                <LineBorder thickness="1"/>
               </Border>
               <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
                 <EmptyBorder bottom="12" left="12" right="12" top="12"/>
@@ -178,16 +173,11 @@
     </Container>
     <Container class="javax.swing.JPanel" name="tablePanel">
       <Properties>
-        <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-          <Color blue="255" green="255" red="255" type="rgb"/>
-        </Property>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.CompoundBorderInfo">
             <CompoundBorder>
               <Border info="org.netbeans.modules.form.compat2.border.LineBorderInfo">
-                <LineBorder thickness="1">
-                  <Color blue="230" green="222" red="216" type="rgb"/>
-                </LineBorder>
+                <LineBorder thickness="1"/>
               </Border>
               <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
                 <EmptyBorder bottom="12" left="12" right="12" top="12"/>
