@@ -96,7 +96,6 @@ public class LoginView extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Login Admin - Aplikasi Bengkel dan Sparepart");
         setMinimumSize(new java.awt.Dimension(820, 500));
-        getContentPane().setLayout(new java.awt.BorderLayout());
 
         brandingPanel.setPreferredSize(new java.awt.Dimension(360, 500));
         brandingPanel.setLayout(new java.awt.GridBagLayout());
@@ -120,7 +119,7 @@ public class LoginView extends javax.swing.JFrame {
 
         contentPanel.setLayout(new java.awt.GridBagLayout());
 
-        cardPanel.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), javax.swing.BorderFactory.createEmptyBorder(30, 28, 30, 28)));
+        cardPanel.setBorder(javax.swing.BorderFactory.createCompoundBorder());
         cardPanel.setPreferredSize(new java.awt.Dimension(380, 360));
         cardPanel.setLayout(new java.awt.GridBagLayout());
 
@@ -177,9 +176,6 @@ public class LoginView extends javax.swing.JFrame {
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 18, 0);
         cardPanel.add(passwordField, gridBagConstraints);
-
-        demoInfo.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
-        demoInfo.setText("Default seed: admin / admin123");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
@@ -204,14 +200,14 @@ public class LoginView extends javax.swing.JFrame {
 
         getContentPane().add(contentPanel, java.awt.BorderLayout.CENTER);
 
-        setSize(new java.awt.Dimension(920, 560));
+        pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel brandingPanel;
     private javax.swing.JLabel brandSubtitle;
     private javax.swing.JLabel brandTitle;
+    private javax.swing.JPanel brandingPanel;
     private javax.swing.JPanel cardPanel;
     private javax.swing.JPanel contentPanel;
     private javax.swing.JLabel demoInfo;
