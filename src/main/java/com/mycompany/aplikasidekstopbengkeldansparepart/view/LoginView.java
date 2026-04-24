@@ -58,6 +58,7 @@ public class LoginView extends javax.swing.JFrame {
         loginButton.setBackground(UiTheme.PRIMARY);
         loginButton.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16));
         loginButton.setFocusPainted(false);
+        loginButton.setContentAreaFilled(false);
         loginButton.setOpaque(true);
     }
 

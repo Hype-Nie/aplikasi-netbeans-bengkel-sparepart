@@ -43,6 +43,7 @@ public final class UiTheme {
         button.setBackground(PRIMARY);
         button.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16));
         button.setFocusPainted(false);
+        button.setContentAreaFilled(false);
         button.setOpaque(true);
         return button;
     }
@@ -54,6 +55,7 @@ public final class UiTheme {
         button.setBackground(SIDEBAR_BUTTON);
         button.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16));
         button.setFocusPainted(false);
+        button.setContentAreaFilled(false);
         button.setOpaque(true);
         return button;
     }

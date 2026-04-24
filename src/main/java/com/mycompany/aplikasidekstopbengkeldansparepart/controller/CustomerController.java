@@ -23,7 +23,6 @@ public class CustomerController {
     private void bindActions() {
         view.addNewListener(e -> view.clearForm());
         view.addSaveListener(e -> handleSave());
-        view.addEditListener(e -> handleEdit());
         view.addDeleteListener(e -> handleDelete());
         view.addRefreshListener(e -> loadData());
         view.addSearchListener((SimpleDocumentListener) event -> view.applySearchFilter(view.getSearchText()));
@@ -63,15 +62,7 @@ public class CustomerController {
         }
     }
 
-    private void handleEdit() {
-        Customer selectedCustomer = view.getSelectedRowAsCustomer();
-        if (selectedCustomer == null) {
-            JOptionPane.showMessageDialog(view, "Pilih data pelanggan dari tabel terlebih dahulu.");
-            return;
-        }
 
-        view.setFormData(selectedCustomer);
-    }
 
     private void handleDelete() {
         Integer selectedId = view.getSelectedRowId();
