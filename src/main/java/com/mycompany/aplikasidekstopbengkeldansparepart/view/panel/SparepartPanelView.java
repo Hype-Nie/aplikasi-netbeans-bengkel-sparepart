@@ -27,6 +27,7 @@ public class SparepartPanelView extends javax.swing.JPanel {
         styleTextField(partCodeField); styleTextField(nameField); styleTextField(categoryField);
         styleTextField(unitField); styleTextField(purchasePriceField); styleTextField(sellingPriceField);
         styleTextField(stockField); styleTextField(minStockField); styleTextField(searchField);
+        partCodeField.setEditable(false);
         styleSecondaryButton(newButton);
         styleSecondaryButton(deleteButton); styleSecondaryButton(refreshButton);
         stylePrimaryButton(saveButton);
@@ -98,6 +99,14 @@ public class SparepartPanelView extends javax.swing.JPanel {
         editingId = null; partCodeField.setText(""); nameField.setText(""); categoryField.setText("");
         unitField.setText(""); purchasePriceField.setText(""); sellingPriceField.setText("");
         stockField.setText("0"); minStockField.setText("0"); partCodeField.requestFocus();
+    }
+
+    public void setPartCode(String code) {
+        partCodeField.setText(code == null ? "" : code);
+    }
+
+    public void focusNameField() {
+        nameField.requestFocus();
     }
 
     public Integer getSelectedRowId() {

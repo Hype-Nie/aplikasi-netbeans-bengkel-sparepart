@@ -3,6 +3,7 @@ package com.mycompany.aplikasidekstopbengkeldansparepart.controller;
 import com.mycompany.aplikasidekstopbengkeldansparepart.dao.CustomerDao;
 import com.mycompany.aplikasidekstopbengkeldansparepart.dao.DashboardDao;
 import com.mycompany.aplikasidekstopbengkeldansparepart.dao.PurchaseTransactionDao;
+import com.mycompany.aplikasidekstopbengkeldansparepart.dao.ReportDao;
 import com.mycompany.aplikasidekstopbengkeldansparepart.dao.ServiceTransactionDao;
 import com.mycompany.aplikasidekstopbengkeldansparepart.dao.SparepartDao;
 import com.mycompany.aplikasidekstopbengkeldansparepart.dao.SupplierDao;
@@ -20,6 +21,7 @@ public class AdminDashboardController {
     private final SupplierController supplierController;
     private final ServiceTransactionController serviceTransactionController;
     private final PurchaseTransactionController purchaseTransactionController;
+    private final ReportController reportController;
 
     public AdminDashboardController(Admin admin) {
         this.view = new AdminDashboardView(admin.getFullName());
@@ -44,6 +46,7 @@ public class AdminDashboardController {
                 admin.getId(),
                 dashboardController
         );
+        this.reportController = new ReportController(view.getReportPanel(), new ReportDao());
 
         bindActions();
     }

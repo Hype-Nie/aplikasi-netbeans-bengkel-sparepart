@@ -3,17 +3,43 @@ package com.mycompany.aplikasidekstopbengkeldansparepart.dao;
 import com.mycompany.aplikasidekstopbengkeldansparepart.config.DatabaseConnection;
 import com.mycompany.aplikasidekstopbengkeldansparepart.model.ServiceItem;
 import com.mycompany.aplikasidekstopbengkeldansparepart.model.ServiceTransaction;
+import com.mycompany.aplikasidekstopbengkeldansparepart.util.CodeGenerator;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ServiceTransactionDao {
 
     private final CustomerDao customerDao = new CustomerDao();
+
+    public String getNextServiceNo(String prefix, String yearMonth) throws SQLException {
+        String sql = """
+                SELECT service_no
+                FROM service_transactions
+                WHERE service_no LIKE ?
+                ORDER BY service_no DESC
+                LIMIT 1
+                """;
+
+        String lastCode = null;
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, CodeGenerator.likePattern(prefix, yearMonth));
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    lastCode = resultSet.getString("service_no");
+                }
+            }
+        }
+
+        return CodeGenerator.nextCode(prefix, yearMonth, lastCode);
+    }
 
     public void save(ServiceTransaction transaction, List<ServiceItem> items, int adminId) throws SQLException {
         String insertHeaderSql = """
@@ -106,5 +132,45 @@ public class ServiceTransactionDao {
                 connection.setAutoCommit(true);
             }
         }
+    }
+
+    public void updateStatus(String serviceNo, String newStatus) throws SQLException {
+        String sql = "UPDATE service_transactions SET status = ? WHERE service_no = ?";
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, newStatus);
+            statement.setString(2, serviceNo);
+            int rows = statement.executeUpdate();
+            if (rows == 0) {
+                throw new SQLException("Nomor servis tidak ditemukan: " + serviceNo);
+            }
+        }
+    }
+
+    public List<Object[]> findAllSummary() throws SQLException {
+        String sql = """
+                SELECT st.service_no, st.service_date, c.name AS customer_name,
+                       st.vehicle, st.status, st.total
+                FROM service_transactions st
+                JOIN customers c ON c.id = st.customer_id
+                ORDER BY st.id DESC
+                """;
+
+        List<Object[]> rows = new ArrayList<>();
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+            while (resultSet.next()) {
+                rows.add(new Object[]{
+                    resultSet.getString("service_no"),
+                    resultSet.getDate("service_date").toLocalDate().toString(),
+                    resultSet.getString("customer_name"),
+                    resultSet.getString("vehicle"),
+                    resultSet.getString("status"),
+                    resultSet.getBigDecimal("total")
+                });
+            }
+        }
+        return rows;
     }
 }

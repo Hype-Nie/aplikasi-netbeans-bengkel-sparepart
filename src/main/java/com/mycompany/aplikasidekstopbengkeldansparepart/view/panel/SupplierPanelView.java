@@ -30,6 +30,7 @@ public class SupplierPanelView extends javax.swing.JPanel {
         styleTextField(emailField);
         styleTextField(addressField);
         styleTextField(searchField);
+        supplierCodeField.setEditable(false);
 
         styleSecondaryButton(newButton);
         styleSecondaryButton(deleteButton);
@@ -118,6 +119,14 @@ public class SupplierPanelView extends javax.swing.JPanel {
         supplierCodeField.setText(""); nameField.setText(""); phoneField.setText("");
         emailField.setText(""); addressField.setText("");
         supplierCodeField.requestFocus();
+    }
+
+    public void setSupplierCode(String code) {
+        supplierCodeField.setText(code == null ? "" : code);
+    }
+
+    public void focusNameField() {
+        nameField.requestFocus();
     }
 
     public Integer getSelectedRowId() {

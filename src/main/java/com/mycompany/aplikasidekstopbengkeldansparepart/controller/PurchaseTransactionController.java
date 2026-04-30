@@ -1,8 +1,11 @@
 package com.mycompany.aplikasidekstopbengkeldansparepart.controller;
 
 import com.mycompany.aplikasidekstopbengkeldansparepart.dao.PurchaseTransactionDao;
+import com.mycompany.aplikasidekstopbengkeldansparepart.dao.SparepartDao;
+import com.mycompany.aplikasidekstopbengkeldansparepart.dao.SupplierDao;
 import com.mycompany.aplikasidekstopbengkeldansparepart.model.PurchaseItem;
 import com.mycompany.aplikasidekstopbengkeldansparepart.model.PurchaseTransaction;
+import com.mycompany.aplikasidekstopbengkeldansparepart.util.CodeGenerator;
 import com.mycompany.aplikasidekstopbengkeldansparepart.util.DateUtil;
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -12,8 +15,12 @@ import com.mycompany.aplikasidekstopbengkeldansparepart.view.panel.PurchaseTrans
 
 public class PurchaseTransactionController {
 
+    private static final String PURCHASE_PREFIX = "PO";
+
     private final PurchaseTransactionPanelView view;
     private final PurchaseTransactionDao dao;
+    private final SupplierDao supplierDao = new SupplierDao();
+    private final SparepartDao sparepartDao = new SparepartDao();
     private final int adminId;
     private final DashboardController dashboardController;
 
@@ -29,14 +36,44 @@ public class PurchaseTransactionController {
         this.dashboardController = dashboardController;
 
         bindActions();
-        view.clearTransactionForm();
+        loadReferenceData();
+        prepareNewForm();
     }
 
     private void bindActions() {
         view.addAddItemListener(e -> handleAddItem());
         view.addRemoveItemListener(e -> handleRemoveItem());
         view.addSaveListener(e -> handleSave());
-        view.addNewListener(e -> view.clearTransactionForm());
+        view.addNewListener(e -> prepareNewForm());
+    }
+
+    private void loadReferenceData() {
+        try {
+            view.setSupplierOptions(supplierDao.findAll());
+            view.setSparepartOptions(sparepartDao.findAll());
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(
+                    view,
+                    "Gagal memuat data referensi: " + ex.getMessage(),
+                    "Database Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
+
+    private void prepareNewForm() {
+        view.clearTransactionForm();
+        try {
+            String purchaseNo = dao.getNextPurchaseNo(PURCHASE_PREFIX, CodeGenerator.currentYearMonth());
+            view.setPurchaseNo(purchaseNo);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(
+                    view,
+                    "Gagal generate nomor pembelian: " + ex.getMessage(),
+                    "Database Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
     }
 
     private void handleAddItem() {
@@ -111,7 +148,7 @@ public class PurchaseTransactionController {
             dao.save(transaction, items, adminId);
 
             JOptionPane.showMessageDialog(view, "Transaksi pembelian berhasil disimpan.");
-            view.clearTransactionForm();
+            prepareNewForm();
             dashboardController.loadData();
         } catch (IllegalArgumentException ex) {
             JOptionPane.showMessageDialog(view, ex.getMessage(), "Validasi", JOptionPane.WARNING_MESSAGE);
