@@ -2,18 +2,27 @@ package com.mycompany.aplikasidekstopbengkeldansparepart.view.panel;
 
 import com.mycompany.aplikasidekstopbengkeldansparepart.UiTheme;
 import com.mycompany.aplikasidekstopbengkeldansparepart.model.PurchaseItem;
+import com.mycompany.aplikasidekstopbengkeldansparepart.model.Sparepart;
+import com.mycompany.aplikasidekstopbengkeldansparepart.model.Supplier;
+import com.mycompany.aplikasidekstopbengkeldansparepart.util.AutoCompleteComboBox;
 import com.mycompany.aplikasidekstopbengkeldansparepart.util.DateUtil;
 import com.mycompany.aplikasidekstopbengkeldansparepart.util.MoneyUtil;
+import com.mycompany.aplikasidekstopbengkeldansparepart.util.SimpleDocumentListener;
 import java.awt.event.ActionListener;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.table.DefaultTableModel;
 
 public class PurchaseTransactionPanelView extends javax.swing.JPanel {
 
     private DefaultTableModel detailModel;
+    private AutoCompleteComboBox.Controller supplierCodeController;
+    private AutoCompleteComboBox.Controller partCodeController;
+    private final Map<String, Sparepart> sparepartsByCode = new HashMap<>();
 
     public PurchaseTransactionPanelView() {
         initComponents();
@@ -23,13 +32,26 @@ public class PurchaseTransactionPanelView extends javax.swing.JPanel {
     private void customInit() {
         setBackground(UiTheme.BACKGROUND);
         setBorder(BorderFactory.createEmptyBorder(14, 14, 14, 14));
-        styleTextField(purchaseNoField); styleTextField(purchaseDateField); styleTextField(supplierCodeField);
+        styleTextField(purchaseNoField); styleTextField(purchaseDateField);
+        styleComboBox(supplierCodeCombo);
         styleTextField(paymentMethodField); styleTextField(statusField);
-        styleTextField(partCodeField); styleTextField(partNameField); styleTextField(qtyField); styleTextField(unitPriceField);
+        styleComboBox(partCodeCombo);
+        styleTextField(partNameField); styleTextField(qtyField); styleTextField(unitPriceField);
         styleSecondaryButton(addItemButton); styleSecondaryButton(removeItemButton);
         styleSecondaryButton(newButton); stylePrimaryButton(saveButton);
         totalValue.setForeground(UiTheme.PRIMARY_DARK);
+        itemSubtotalValue.setForeground(UiTheme.PRIMARY_DARK);
         purchaseDateField.setText(DateUtil.todayText()); statusField.setText("DRAFT"); qtyField.setText("1");
+
+        purchaseNoField.setEditable(false);
+
+        supplierCodeController = AutoCompleteComboBox.attach(supplierCodeCombo);
+        partCodeController = AutoCompleteComboBox.attach(partCodeCombo);
+
+        partCodeCombo.addActionListener(e -> applySelectedPartToItemFields());
+        qtyField.getDocument().addDocumentListener((SimpleDocumentListener) event -> updateItemSubtotalPreview());
+        unitPriceField.getDocument().addDocumentListener((SimpleDocumentListener) event -> updateItemSubtotalPreview());
+        updateItemSubtotalPreview();
 
         detailModel = new DefaultTableModel(new String[]{"Kode", "Nama Part", "Qty", "Harga", "Subtotal"}, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
@@ -41,6 +63,10 @@ public class PurchaseTransactionPanelView extends javax.swing.JPanel {
     private void styleTextField(javax.swing.JTextField f) {
         f.setFont(UiTheme.FONT_BODY); f.setMargin(UiTheme.FIELD_INSETS);
         f.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(UiTheme.BORDER), BorderFactory.createEmptyBorder(2,2,2,2)));
+    }
+    private void styleComboBox(javax.swing.JComboBox<?> combo) {
+        combo.setFont(UiTheme.FONT_BODY);
+        combo.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(UiTheme.BORDER), BorderFactory.createEmptyBorder(2,2,2,2)));
     }
     private void stylePrimaryButton(javax.swing.JButton b) {
         b.setFont(UiTheme.FONT_BODY); b.setForeground(java.awt.Color.WHITE); b.setBackground(UiTheme.PRIMARY);
@@ -58,22 +84,48 @@ public class PurchaseTransactionPanelView extends javax.swing.JPanel {
 
     public String getPurchaseNo() { return purchaseNoField.getText().trim(); }
     public String getPurchaseDateText() { return purchaseDateField.getText().trim(); }
-    public String getSupplierCode() { return supplierCodeField.getText().trim(); }
+    public String getSupplierCode() { return extractCode(supplierCodeController.getSelectedText()); }
     public String getPaymentMethod() { return paymentMethodField.getText().trim(); }
     public String getStatus() { return statusField.getText().trim(); }
-    public String getPartCode() { return partCodeField.getText().trim(); }
+    public String getPartCode() { return extractCode(partCodeController.getSelectedText()); }
     public String getPartName() { return partNameField.getText().trim(); }
     public int getItemQty() { try { return Integer.parseInt(qtyField.getText().trim()); } catch (Exception e) { return 0; } }
     public BigDecimal getUnitPrice() { return MoneyUtil.parse(unitPriceField.getText()); }
 
+    public void setPurchaseNo(String purchaseNo) {
+        purchaseNoField.setText(purchaseNo == null ? "" : purchaseNo);
+    }
+
+    public void setSupplierOptions(List<Supplier> suppliers) {
+        List<String> options = new ArrayList<>();
+        for (Supplier supplier : suppliers) {
+            options.add(formatOption(supplier.getSupplierCode(), supplier.getName()));
+        }
+        supplierCodeController.setItems(options);
+    }
+
+    public void setSparepartOptions(List<Sparepart> spareparts) {
+        sparepartsByCode.clear();
+        List<String> options = new ArrayList<>();
+        for (Sparepart sparepart : spareparts) {
+            sparepartsByCode.put(sparepart.getPartCode(), sparepart);
+            options.add(formatOption(sparepart.getPartCode(), sparepart.getName()));
+        }
+        partCodeController.setItems(options);
+    }
+
     public void clearItemInput() {
-        partCodeField.setText(""); partNameField.setText(""); qtyField.setText("1");
-        unitPriceField.setText(""); partCodeField.requestFocus();
+        partCodeController.setSelectedItem("");
+        partNameField.setText(""); qtyField.setText("1");
+        unitPriceField.setText("");
+        updateItemSubtotalPreview();
+        partCodeCombo.requestFocus();
     }
 
     public void clearTransactionForm() {
         purchaseNoField.setText(""); purchaseDateField.setText(DateUtil.todayText());
-        supplierCodeField.setText(""); paymentMethodField.setText(""); statusField.setText("DRAFT");
+        supplierCodeController.setSelectedItem("");
+        paymentMethodField.setText(""); statusField.setText("DRAFT");
         detailModel.setRowCount(0); setTotalValue(BigDecimal.ZERO);
         clearItemInput(); purchaseNoField.requestFocus();
     }
@@ -110,6 +162,44 @@ public class PurchaseTransactionPanelView extends javax.swing.JPanel {
 
     public void setTotalValue(BigDecimal value) { totalValue.setText(MoneyUtil.format(value)); }
 
+    private void applySelectedPartToItemFields() {
+        String code = extractCode(partCodeController.getSelectedText());
+        if (code.isBlank()) {
+            return;
+        }
+
+        Sparepart sparepart = sparepartsByCode.get(code);
+        if (sparepart == null) {
+            return;
+        }
+
+        partNameField.setText(sparepart.getName());
+        unitPriceField.setText(MoneyUtil.format(sparepart.getPurchasePrice()));
+        updateItemSubtotalPreview();
+    }
+
+    private void updateItemSubtotalPreview() {
+        BigDecimal price = MoneyUtil.parse(unitPriceField.getText());
+        int qty = getItemQty();
+        BigDecimal subtotal = price.multiply(BigDecimal.valueOf(qty));
+        itemSubtotalValue.setText(MoneyUtil.format(subtotal));
+    }
+
+    private static String formatOption(String code, String name) {
+        String safeCode = code == null ? "" : code.trim();
+        String safeName = name == null ? "" : name.trim();
+        return safeCode + " - " + safeName;
+    }
+
+    private static String extractCode(String display) {
+        if (display == null) {
+            return "";
+        }
+        String trimmed = display.trim();
+        int separator = trimmed.indexOf(" - ");
+        return separator > 0 ? trimmed.substring(0, separator).trim() : trimmed;
+    }
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -123,7 +213,7 @@ public class PurchaseTransactionPanelView extends javax.swing.JPanel {
         purchaseDateLabel = new javax.swing.JLabel();
         purchaseDateField = new javax.swing.JTextField();
         supplierCodeLabel = new javax.swing.JLabel();
-        supplierCodeField = new javax.swing.JTextField();
+        supplierCodeCombo = new javax.swing.JComboBox<>();
         paymentMethodLabel = new javax.swing.JLabel();
         paymentMethodField = new javax.swing.JTextField();
         statusLabel = new javax.swing.JLabel();
@@ -132,13 +222,15 @@ public class PurchaseTransactionPanelView extends javax.swing.JPanel {
         itemInputPanel = new javax.swing.JPanel();
         detailTitleLabel = new javax.swing.JLabel();
         partCodeLabel = new javax.swing.JLabel();
-        partCodeField = new javax.swing.JTextField();
+        partCodeCombo = new javax.swing.JComboBox<>();
         partNameLabel = new javax.swing.JLabel();
         partNameField = new javax.swing.JTextField();
         qtyLabel = new javax.swing.JLabel();
         qtyField = new javax.swing.JTextField();
         unitPriceLabel = new javax.swing.JLabel();
         unitPriceField = new javax.swing.JTextField();
+        itemSubtotalLabel = new javax.swing.JLabel();
+        itemSubtotalValue = new javax.swing.JLabel();
         addItemButton = new javax.swing.JButton();
         removeItemButton = new javax.swing.JButton();
         detailScrollPane = new javax.swing.JScrollPane();
@@ -177,9 +269,8 @@ public class PurchaseTransactionPanelView extends javax.swing.JPanel {
         supplierCodeLabel.setText("Kode Supplier");
         gridBagConstraints = new java.awt.GridBagConstraints(); gridBagConstraints.gridx=0; gridBagConstraints.gridy=1; gridBagConstraints.fill=java.awt.GridBagConstraints.HORIZONTAL; gridBagConstraints.insets=new java.awt.Insets(6,6,6,6);
         headerFieldsPanel.add(supplierCodeLabel, gridBagConstraints);
-        supplierCodeField.setColumns(16);
         gridBagConstraints = new java.awt.GridBagConstraints(); gridBagConstraints.gridx=1; gridBagConstraints.gridy=1; gridBagConstraints.fill=java.awt.GridBagConstraints.HORIZONTAL; gridBagConstraints.weightx=1.0; gridBagConstraints.insets=new java.awt.Insets(6,6,6,6);
-        headerFieldsPanel.add(supplierCodeField, gridBagConstraints);
+        headerFieldsPanel.add(supplierCodeCombo, gridBagConstraints);
         paymentMethodLabel.setText("Metode Bayar");
         gridBagConstraints = new java.awt.GridBagConstraints(); gridBagConstraints.gridx=2; gridBagConstraints.gridy=1; gridBagConstraints.fill=java.awt.GridBagConstraints.HORIZONTAL; gridBagConstraints.insets=new java.awt.Insets(6,6,6,6);
         headerFieldsPanel.add(paymentMethodLabel, gridBagConstraints);
@@ -211,9 +302,8 @@ public class PurchaseTransactionPanelView extends javax.swing.JPanel {
         partCodeLabel.setText("Kode");
         gbc = new java.awt.GridBagConstraints(); gbc.gridx=0; gbc.gridy=1; gbc.anchor=java.awt.GridBagConstraints.WEST; gbc.insets=new java.awt.Insets(4,4,4,4);
         itemInputPanel.add(partCodeLabel, gbc);
-        partCodeField.setColumns(10);
         gbc = new java.awt.GridBagConstraints(); gbc.gridx=1; gbc.gridy=1; gbc.fill=java.awt.GridBagConstraints.HORIZONTAL; gbc.weightx=0.3; gbc.insets=new java.awt.Insets(4,4,4,4);
-        itemInputPanel.add(partCodeField, gbc);
+        itemInputPanel.add(partCodeCombo, gbc);
 
         partNameLabel.setText("Nama");
         gbc = new java.awt.GridBagConstraints(); gbc.gridx=2; gbc.gridy=1; gbc.anchor=java.awt.GridBagConstraints.WEST; gbc.insets=new java.awt.Insets(4,4,4,4);
@@ -229,12 +319,19 @@ public class PurchaseTransactionPanelView extends javax.swing.JPanel {
         gbc = new java.awt.GridBagConstraints(); gbc.gridx=1; gbc.gridy=2; gbc.fill=java.awt.GridBagConstraints.HORIZONTAL; gbc.insets=new java.awt.Insets(4,4,4,4);
         itemInputPanel.add(qtyField, gbc);
 
-        unitPriceLabel.setText("Harga");
+        unitPriceLabel.setText("Harga Satuan");
         gbc = new java.awt.GridBagConstraints(); gbc.gridx=2; gbc.gridy=2; gbc.anchor=java.awt.GridBagConstraints.WEST; gbc.insets=new java.awt.Insets(4,4,4,4);
         itemInputPanel.add(unitPriceLabel, gbc);
         unitPriceField.setColumns(10);
         gbc = new java.awt.GridBagConstraints(); gbc.gridx=3; gbc.gridy=2; gbc.fill=java.awt.GridBagConstraints.HORIZONTAL; gbc.weightx=1.0; gbc.insets=new java.awt.Insets(4,4,4,4);
         itemInputPanel.add(unitPriceField, gbc);
+
+        itemSubtotalLabel.setText("Subtotal");
+        gbc = new java.awt.GridBagConstraints(); gbc.gridx=4; gbc.gridy=3; gbc.anchor=java.awt.GridBagConstraints.EAST; gbc.insets=new java.awt.Insets(4,4,4,4);
+        itemInputPanel.add(itemSubtotalLabel, gbc);
+        itemSubtotalValue.setText("Rp 0");
+        gbc = new java.awt.GridBagConstraints(); gbc.gridx=5; gbc.gridy=3; gbc.anchor=java.awt.GridBagConstraints.WEST; gbc.insets=new java.awt.Insets(4,4,4,4);
+        itemInputPanel.add(itemSubtotalValue, gbc);
 
         addItemButton.setText("Tambah Item");
         gbc = new java.awt.GridBagConstraints(); gbc.gridx=4; gbc.gridy=1; gbc.insets=new java.awt.Insets(4,4,4,4);
@@ -280,7 +377,7 @@ public class PurchaseTransactionPanelView extends javax.swing.JPanel {
     private javax.swing.JLabel headerTitleLabel;
     private javax.swing.JPanel itemInputPanel;
     private javax.swing.JButton newButton;
-    private javax.swing.JTextField partCodeField;
+    private javax.swing.JComboBox<String> partCodeCombo;
     private javax.swing.JLabel partCodeLabel;
     private javax.swing.JTextField partNameField;
     private javax.swing.JLabel partNameLabel;
@@ -296,8 +393,10 @@ public class PurchaseTransactionPanelView extends javax.swing.JPanel {
     private javax.swing.JButton saveButton;
     private javax.swing.JTextField statusField;
     private javax.swing.JLabel statusLabel;
-    private javax.swing.JTextField supplierCodeField;
+    private javax.swing.JComboBox<String> supplierCodeCombo;
     private javax.swing.JLabel supplierCodeLabel;
+    private javax.swing.JLabel itemSubtotalLabel;
+    private javax.swing.JLabel itemSubtotalValue;
     private javax.swing.JLabel totalTextLabel;
     private javax.swing.JPanel totalPanel;
     private javax.swing.JLabel totalValue;

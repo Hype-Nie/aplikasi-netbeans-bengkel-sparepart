@@ -3,6 +3,7 @@ package com.mycompany.aplikasidekstopbengkeldansparepart.dao;
 import com.mycompany.aplikasidekstopbengkeldansparepart.config.DatabaseConnection;
 import com.mycompany.aplikasidekstopbengkeldansparepart.model.PurchaseItem;
 import com.mycompany.aplikasidekstopbengkeldansparepart.model.PurchaseTransaction;
+import com.mycompany.aplikasidekstopbengkeldansparepart.util.CodeGenerator;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -15,6 +16,30 @@ public class PurchaseTransactionDao {
 
     private final SupplierDao supplierDao = new SupplierDao();
     private final SparepartDao sparepartDao = new SparepartDao();
+
+    public String getNextPurchaseNo(String prefix, String yearMonth) throws SQLException {
+        String sql = """
+                SELECT purchase_no
+                FROM purchase_transactions
+                WHERE purchase_no LIKE ?
+                ORDER BY purchase_no DESC
+                LIMIT 1
+                """;
+
+        String lastCode = null;
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, CodeGenerator.likePattern(prefix, yearMonth));
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    lastCode = resultSet.getString("purchase_no");
+                }
+            }
+        }
+
+        return CodeGenerator.nextCode(prefix, yearMonth, lastCode);
+    }
 
     public void save(PurchaseTransaction transaction, List<PurchaseItem> items, int adminId) throws SQLException {
         String insertHeaderSql = """

@@ -2,6 +2,7 @@ package com.mycompany.aplikasidekstopbengkeldansparepart.dao;
 
 import com.mycompany.aplikasidekstopbengkeldansparepart.config.DatabaseConnection;
 import com.mycompany.aplikasidekstopbengkeldansparepart.model.Sparepart;
+import com.mycompany.aplikasidekstopbengkeldansparepart.util.CodeGenerator;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,6 +12,30 @@ import java.util.List;
 import java.util.Optional;
 
 public class SparepartDao {
+
+    public String getNextPartCode(String prefix, String yearMonth) throws SQLException {
+        String sql = """
+                SELECT part_code
+                FROM spareparts
+                WHERE part_code LIKE ?
+                ORDER BY part_code DESC
+                LIMIT 1
+                """;
+
+        String lastCode = null;
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, CodeGenerator.likePattern(prefix, yearMonth));
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    lastCode = resultSet.getString("part_code");
+                }
+            }
+        }
+
+        return CodeGenerator.nextCode(prefix, yearMonth, lastCode);
+    }
 
     public List<Sparepart> findAll() throws SQLException {
         String sql = """

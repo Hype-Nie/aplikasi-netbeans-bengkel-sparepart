@@ -4,6 +4,7 @@ import com.mycompany.aplikasidekstopbengkeldansparepart.UiTheme;
 import com.mycompany.aplikasidekstopbengkeldansparepart.view.panel.CustomerPanelView;
 import com.mycompany.aplikasidekstopbengkeldansparepart.view.panel.DashboardPanelView;
 import com.mycompany.aplikasidekstopbengkeldansparepart.view.panel.PurchaseTransactionPanelView;
+import com.mycompany.aplikasidekstopbengkeldansparepart.view.panel.ReportPanelView;
 import com.mycompany.aplikasidekstopbengkeldansparepart.view.panel.ServiceTransactionPanelView;
 import com.mycompany.aplikasidekstopbengkeldansparepart.view.panel.SparepartPanelView;
 import com.mycompany.aplikasidekstopbengkeldansparepart.view.panel.SupplierPanelView;
@@ -22,6 +23,7 @@ public class AdminDashboardView extends javax.swing.JFrame {
     private final SupplierPanelView supplierPanel = new SupplierPanelView();
     private final ServiceTransactionPanelView servicePanel = new ServiceTransactionPanelView();
     private final PurchaseTransactionPanelView purchasePanel = new PurchaseTransactionPanelView();
+    private final ReportPanelView reportPanel = new ReportPanelView();
 
     private static final String KEY_DASHBOARD = "Dashboard";
     private static final String KEY_PELANGGAN = "Pelanggan";
@@ -29,6 +31,7 @@ public class AdminDashboardView extends javax.swing.JFrame {
     private static final String KEY_SUPPLIER = "Supplier";
     private static final String KEY_SERVIS = "Servis";
     private static final String KEY_PEMBELIAN = "Pembelian";
+    private static final String KEY_LAPORAN = "Laporan";
 
     /**
      * Constructor used by the AdminDashboardController.
@@ -55,6 +58,7 @@ public class AdminDashboardView extends javax.swing.JFrame {
     public SupplierPanelView getSupplierPanel() { return supplierPanel; }
     public ServiceTransactionPanelView getServicePanel() { return servicePanel; }
     public PurchaseTransactionPanelView getPurchasePanel() { return purchasePanel; }
+    public ReportPanelView getReportPanel() { return reportPanel; }
 
     // --- Listener ---
     public void addLogoutListener(ActionListener l) { logoutButton.addActionListener(l); }
@@ -70,6 +74,7 @@ public class AdminDashboardView extends javax.swing.JFrame {
 
         styleNavButton(dashboardBtn); styleNavButton(customerBtn); styleNavButton(sparepartBtn);
         styleNavButton(supplierBtn); styleNavButton(serviceBtn); styleNavButton(purchaseBtn);
+        styleNavButton(reportBtn);
 
         navButtons.put(KEY_DASHBOARD, dashboardBtn);
         navButtons.put(KEY_PELANGGAN, customerBtn);
@@ -77,6 +82,7 @@ public class AdminDashboardView extends javax.swing.JFrame {
         navButtons.put(KEY_SUPPLIER, supplierBtn);
         navButtons.put(KEY_SERVIS, serviceBtn);
         navButtons.put(KEY_PEMBELIAN, purchaseBtn);
+        navButtons.put(KEY_LAPORAN, reportBtn);
 
         topBarPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(0, 0, 1, 0, UiTheme.BORDER),
@@ -97,6 +103,7 @@ public class AdminDashboardView extends javax.swing.JFrame {
         contentPanel.add(supplierPanel, KEY_SUPPLIER);
         contentPanel.add(servicePanel, KEY_SERVIS);
         contentPanel.add(purchasePanel, KEY_PEMBELIAN);
+        contentPanel.add(reportPanel, KEY_LAPORAN);
 
         // Wire sidebar buttons to show the corresponding panel
         dashboardBtn.addActionListener(e -> showPanel(KEY_DASHBOARD, "Dashboard Admin"));
@@ -105,6 +112,7 @@ public class AdminDashboardView extends javax.swing.JFrame {
         supplierBtn.addActionListener(e -> showPanel(KEY_SUPPLIER, "Kelola Data Supplier"));
         serviceBtn.addActionListener(e -> showPanel(KEY_SERVIS, "Transaksi Servis Masuk"));
         purchaseBtn.addActionListener(e -> showPanel(KEY_PEMBELIAN, "Transaksi Pembelian Supplier"));
+        reportBtn.addActionListener(e -> showPanel(KEY_LAPORAN, "Laporan Transaksi"));
 
         // Show dashboard by default
         showPanel(KEY_DASHBOARD, "Dashboard Admin");
@@ -154,6 +162,7 @@ public class AdminDashboardView extends javax.swing.JFrame {
         supplierBtn = new javax.swing.JButton();
         serviceBtn = new javax.swing.JButton();
         purchaseBtn = new javax.swing.JButton();
+        reportBtn = new javax.swing.JButton();
         mainPanel = new javax.swing.JPanel();
         topBarPanel = new javax.swing.JPanel();
         titleLabel = new javax.swing.JLabel();
@@ -191,6 +200,9 @@ public class AdminDashboardView extends javax.swing.JFrame {
 
         purchaseBtn.setText("Transaksi Pembelian Supplier");
         sidebarPanel.add(purchaseBtn);
+
+        reportBtn.setText("Laporan");
+        sidebarPanel.add(reportBtn);
 
         getContentPane().add(sidebarPanel, java.awt.BorderLayout.WEST);
 
@@ -234,6 +246,7 @@ public class AdminDashboardView extends javax.swing.JFrame {
     private javax.swing.JButton logoutButton;
     private javax.swing.JPanel mainPanel;
     private javax.swing.JButton purchaseBtn;
+    private javax.swing.JButton reportBtn;
     private javax.swing.JPanel rightTopPanel;
     private javax.swing.JButton serviceBtn;
     private javax.swing.JPanel sidebarPanel;
