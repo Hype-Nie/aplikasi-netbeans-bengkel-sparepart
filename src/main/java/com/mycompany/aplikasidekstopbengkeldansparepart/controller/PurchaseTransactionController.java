@@ -38,6 +38,7 @@ public class PurchaseTransactionController {
         bindActions();
         loadReferenceData();
         prepareNewForm();
+        loadHistory();
     }
 
     private void bindActions() {
@@ -45,9 +46,10 @@ public class PurchaseTransactionController {
         view.addRemoveItemListener(e -> handleRemoveItem());
         view.addSaveListener(e -> handleSave());
         view.addNewListener(e -> prepareNewForm());
+        view.addUpdateStatusListener(e -> handleUpdateStatus());
     }
 
-    private void loadReferenceData() {
+    public void loadReferenceData() {
         try {
             view.setSupplierOptions(supplierDao.findAll());
             view.setSparepartOptions(sparepartDao.findAll());
@@ -149,6 +151,7 @@ public class PurchaseTransactionController {
 
             JOptionPane.showMessageDialog(view, "Transaksi pembelian berhasil disimpan.");
             prepareNewForm();
+            loadHistory();
             dashboardController.loadData();
         } catch (IllegalArgumentException ex) {
             JOptionPane.showMessageDialog(view, ex.getMessage(), "Validasi", JOptionPane.WARNING_MESSAGE);
@@ -164,5 +167,34 @@ public class PurchaseTransactionController {
 
     private void refreshTotal() {
         view.setTotalValue(view.calculateCurrentTotal());
+    }
+
+    private void handleUpdateStatus() {
+        String purchaseNo = view.getSelectedHistoryPurchaseNo();
+        if (purchaseNo == null) {
+            JOptionPane.showMessageDialog(view, "Pilih transaksi dari tabel riwayat terlebih dahulu.",
+                    "Validasi", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String newStatus = view.getNewStatusSelection();
+        int confirm = JOptionPane.showConfirmDialog(view,
+                "Ubah status transaksi " + purchaseNo + " menjadi \"" + newStatus + "\"?",
+                "Konfirmasi Ubah Status", JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        try {
+            dao.updateStatus(purchaseNo, newStatus);
+            JOptionPane.showMessageDialog(view,
+                    "Status transaksi " + purchaseNo + " berhasil diubah menjadi " + newStatus + ".");
+            loadHistory();
+            dashboardController.loadData();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(view, "Gagal mengubah status: " + ex.getMessage(),
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void loadHistory() {
+        try { view.setHistoryRows(dao.findAllSummary()); } catch (SQLException ex) { /* silent */ }
     }
 }

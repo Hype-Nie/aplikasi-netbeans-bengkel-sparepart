@@ -23,13 +23,16 @@ public class DashboardPanelView extends javax.swing.JPanel {
 
         // Style stat cards
         styleCard(card1, UiTheme.PRIMARY); styleCard(card2, UiTheme.SUCCESS);
-        styleCard(card3, UiTheme.WARNING); styleCard(card4, UiTheme.PRIMARY_DARK);
+        styleCard(card3, UiTheme.WARNING); styleCard(card4, UiTheme.SUCCESS);
+        styleCard(card5, UiTheme.PRIMARY_DARK);
         activeCustomersValue.setForeground(UiTheme.PRIMARY);
         totalStockValue.setForeground(UiTheme.SUCCESS);
         todayServicesValue.setForeground(UiTheme.WARNING);
+        todaySalesValue.setForeground(UiTheme.SUCCESS);
         monthlyPurchasesValue.setForeground(UiTheme.PRIMARY_DARK);
         card1Title.setForeground(UiTheme.TEXT_MUTED); card2Title.setForeground(UiTheme.TEXT_MUTED);
         card3Title.setForeground(UiTheme.TEXT_MUTED); card4Title.setForeground(UiTheme.TEXT_MUTED);
+        card5Title.setForeground(UiTheme.TEXT_MUTED);
 
         styleSecondaryButton(refreshButton);
         todayRevenueLabel.setForeground(UiTheme.PRIMARY_DARK);
@@ -65,6 +68,7 @@ public class DashboardPanelView extends javax.swing.JPanel {
         activeCustomersValue.setText(String.valueOf(summary.getActiveCustomers()));
         totalStockValue.setText(String.valueOf(summary.getTotalStock()));
         todayServicesValue.setText(String.valueOf(summary.getTodayServices()));
+        todaySalesValue.setText(String.valueOf(summary.getTodaySales()));
         monthlyPurchasesValue.setText(String.valueOf(summary.getMonthlyPurchases()));
         todayRevenueLabel.setText(MoneyUtil.format(summary.getTodayRevenue()));
     }
@@ -102,6 +106,9 @@ public class DashboardPanelView extends javax.swing.JPanel {
         todayServicesValue = new javax.swing.JLabel();
         card4 = new javax.swing.JPanel();
         card4Title = new javax.swing.JLabel();
+        todaySalesValue = new javax.swing.JLabel();
+        card5 = new javax.swing.JPanel();
+        card5Title = new javax.swing.JLabel();
         monthlyPurchasesValue = new javax.swing.JLabel();
         refreshPanel = new javax.swing.JPanel();
         refreshButton = new javax.swing.JButton();
@@ -130,7 +137,7 @@ public class DashboardPanelView extends javax.swing.JPanel {
         topContainer.setOpaque(false);
         topContainer.setLayout(new java.awt.BorderLayout());
         statsPanel.setOpaque(false);
-        statsPanel.setLayout(new java.awt.GridLayout(1, 4, 12, 12));
+        statsPanel.setLayout(new java.awt.GridLayout(1, 5, 12, 12));
 
         card1.setBackground(new java.awt.Color(255, 255, 255));
         card1.setLayout(new java.awt.BorderLayout(8, 8));
@@ -165,12 +172,22 @@ public class DashboardPanelView extends javax.swing.JPanel {
         card4.setBackground(new java.awt.Color(255, 255, 255));
         card4.setLayout(new java.awt.BorderLayout(8, 8));
         card4Title.setFont(new java.awt.Font("Segoe UI", 0, 12));
-        card4Title.setText("Pembelian Bulan Ini");
+        card4Title.setText("Penjualan Hari Ini");
         card4.add(card4Title, java.awt.BorderLayout.NORTH);
+        todaySalesValue.setFont(new java.awt.Font("Segoe UI", 1, 20));
+        todaySalesValue.setText("0");
+        card4.add(todaySalesValue, java.awt.BorderLayout.CENTER);
+        statsPanel.add(card4);
+
+        card5.setBackground(new java.awt.Color(255, 255, 255));
+        card5.setLayout(new java.awt.BorderLayout(8, 8));
+        card5Title.setFont(new java.awt.Font("Segoe UI", 0, 12));
+        card5Title.setText("Pembelian Bulan Ini");
+        card5.add(card5Title, java.awt.BorderLayout.NORTH);
         monthlyPurchasesValue.setFont(new java.awt.Font("Segoe UI", 1, 20));
         monthlyPurchasesValue.setText("0");
-        card4.add(monthlyPurchasesValue, java.awt.BorderLayout.CENTER);
-        statsPanel.add(card4);
+        card5.add(monthlyPurchasesValue, java.awt.BorderLayout.CENTER);
+        statsPanel.add(card5);
 
         topContainer.add(statsPanel, java.awt.BorderLayout.CENTER);
         refreshPanel.setOpaque(false);
@@ -215,7 +232,7 @@ public class DashboardPanelView extends javax.swing.JPanel {
         summaryPanel.add(summaryTitle, java.awt.BorderLayout.NORTH);
         summaryBody.setOpaque(false);
         summaryBody.setLayout(new java.awt.GridLayout(4, 1, 8, 8));
-        note1.setText("- Total transaksi servis dihitung otomatis dari database"); summaryBody.add(note1);
+        note1.setText("- Omzet = servis + penjualan sparepart hari ini"); summaryBody.add(note1);
         note2.setText("- Total pembelian bulan ini dihitung otomatis"); summaryBody.add(note2);
         note3.setText("- Stok sparepart ikut berubah saat transaksi"); summaryBody.add(note3);
         revenueRow.setOpaque(false); revenueRow.setLayout(new java.awt.BorderLayout());
@@ -240,6 +257,9 @@ public class DashboardPanelView extends javax.swing.JPanel {
     private javax.swing.JLabel card3Title;
     private javax.swing.JPanel card4;
     private javax.swing.JLabel card4Title;
+    private javax.swing.JPanel card5;
+    private javax.swing.JLabel card5Title;
+    private javax.swing.JLabel todaySalesValue;
     private javax.swing.JPanel lowStockPanel;
     private javax.swing.JScrollPane lowStockScrollPane;
     private javax.swing.JTable lowStockTable;

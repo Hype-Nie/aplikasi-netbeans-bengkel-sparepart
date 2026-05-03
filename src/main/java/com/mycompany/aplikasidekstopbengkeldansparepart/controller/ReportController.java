@@ -31,6 +31,8 @@ public class ReportController {
                 view.getServiceModel(), "laporan_servis"));
         view.addExportPurchaseCsvListener(e -> handleExportCsv(
                 view.getPurchaseModel(), "laporan_pembelian"));
+        view.addExportSaleCsvListener(e -> handleExportCsv(
+                view.getSaleModel(), "laporan_penjualan"));
     }
 
     private void handleLoadReport() {
@@ -47,12 +49,15 @@ public class ReportController {
         try {
             List<Object[]> serviceRows = dao.findServiceTransactions(dateFrom, dateTo);
             List<Object[]> purchaseRows = dao.findPurchaseTransactions(dateFrom, dateTo);
+            List<Object[]> saleRows = dao.findSaleTransactions(dateFrom, dateTo);
             BigDecimal totalService = dao.sumServiceTotal(dateFrom, dateTo);
             BigDecimal totalPurchase = dao.sumPurchaseTotal(dateFrom, dateTo);
+            BigDecimal totalSale = dao.sumSaleTotal(dateFrom, dateTo);
 
             view.setServiceRows(serviceRows);
             view.setPurchaseRows(purchaseRows);
-            view.setSummary(totalService, totalPurchase);
+            view.setSaleRows(saleRows);
+            view.setSummary(totalService, totalPurchase, totalSale);
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(view,
                     "Gagal memuat data laporan: " + ex.getMessage(),
@@ -73,17 +78,13 @@ public class ReportController {
         chooser.setSelectedFile(new java.io.File(defaultName + ".csv"));
         chooser.setFileFilter(new FileNameExtensionFilter("CSV files (*.csv)", "csv"));
 
-        if (chooser.showSaveDialog(view) != JFileChooser.APPROVE_OPTION) {
-            return;
-        }
+        if (chooser.showSaveDialog(view) != JFileChooser.APPROVE_OPTION) return;
 
         java.io.File file = chooser.getSelectedFile();
-        if (!file.getName().toLowerCase().endsWith(".csv")) {
+        if (!file.getName().toLowerCase().endsWith(".csv"))
             file = new java.io.File(file.getAbsolutePath() + ".csv");
-        }
 
         try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
-            // Header
             StringBuilder header = new StringBuilder();
             for (int col = 0; col < model.getColumnCount(); col++) {
                 if (col > 0) header.append(",");
@@ -91,7 +92,6 @@ public class ReportController {
             }
             writer.println(header);
 
-            // Data rows
             for (int row = 0; row < model.getRowCount(); row++) {
                 StringBuilder line = new StringBuilder();
                 for (int col = 0; col < model.getColumnCount(); col++) {
