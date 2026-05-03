@@ -28,15 +28,15 @@ public class AdminDashboardView extends javax.swing.JFrame {
     private final SaleTransactionPanelView salePanel = new SaleTransactionPanelView();
     private final ReportPanelView reportPanel = new ReportPanelView();
 
-    private static final String KEY_DASHBOARD = "Dashboard";
-    private static final String KEY_PELANGGAN = "Pelanggan";
-    private static final String KEY_SPAREPART = "Sparepart";
-    private static final String KEY_SUPPLIER = "Supplier";
-    private static final String KEY_JASA = "Jasa";
-    private static final String KEY_SERVIS = "Servis";
-    private static final String KEY_PEMBELIAN = "Pembelian";
-    private static final String KEY_PENJUALAN = "Penjualan";
-    private static final String KEY_LAPORAN = "Laporan";
+    public static final String KEY_DASHBOARD = "Dashboard";
+    public static final String KEY_PELANGGAN = "Pelanggan";
+    public static final String KEY_SPAREPART = "Sparepart";
+    public static final String KEY_SUPPLIER = "Supplier";
+    public static final String KEY_JASA = "Jasa";
+    public static final String KEY_SERVIS = "Servis";
+    public static final String KEY_PEMBELIAN = "Pembelian";
+    public static final String KEY_PENJUALAN = "Penjualan";
+    public static final String KEY_LAPORAN = "Laporan";
 
     public AdminDashboardView(String adminName) {
         initComponents();
@@ -63,6 +63,13 @@ public class AdminDashboardView extends javax.swing.JFrame {
     public ReportPanelView getReportPanel() { return reportPanel; }
 
     public void addLogoutListener(ActionListener l) { logoutButton.addActionListener(l); }
+
+    public void addTabSelectListener(String key, Runnable action) {
+        javax.swing.JButton btn = navButtons.get(key);
+        if (btn != null) {
+            btn.addActionListener(e -> action.run());
+        }
+    }
 
     private void customInit() {
         sidebarPanel.setBackground(UiTheme.SIDEBAR_BG);

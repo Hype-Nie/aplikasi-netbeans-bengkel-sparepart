@@ -44,7 +44,7 @@ public class SaleTransactionController {
         view.addNewListener(e -> prepareNewForm());
     }
 
-    private void loadReferenceData() {
+    public void loadReferenceData() {
         try {
             view.setCustomerOptions(customerDao.findAll());
             view.setSparepartOptions(sparepartDao.findAll());

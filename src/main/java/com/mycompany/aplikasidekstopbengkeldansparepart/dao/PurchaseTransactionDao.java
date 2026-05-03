@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PurchaseTransactionDao {
@@ -132,5 +133,44 @@ public class PurchaseTransactionDao {
                 connection.setAutoCommit(true);
             }
         }
+    }
+
+    public void updateStatus(String purchaseNo, String newStatus) throws SQLException {
+        String sql = "UPDATE purchase_transactions SET status = ? WHERE purchase_no = ?";
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, newStatus);
+            statement.setString(2, purchaseNo);
+            int rows = statement.executeUpdate();
+            if (rows == 0) {
+                throw new SQLException("Nomor pembelian tidak ditemukan: " + purchaseNo);
+            }
+        }
+    }
+
+    public List<Object[]> findAllSummary() throws SQLException {
+        String sql = """
+                SELECT pt.purchase_no, pt.purchase_date, s.name AS supplier_name,
+                       pt.status, pt.total
+                FROM purchase_transactions pt
+                JOIN suppliers s ON s.id = pt.supplier_id
+                ORDER BY pt.id DESC
+                """;
+
+        List<Object[]> rows = new ArrayList<>();
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+            while (resultSet.next()) {
+                rows.add(new Object[]{
+                    resultSet.getString("purchase_no"),
+                    resultSet.getDate("purchase_date").toLocalDate().toString(),
+                    resultSet.getString("supplier_name"),
+                    resultSet.getString("status"),
+                    resultSet.getBigDecimal("total")
+                });
+            }
+        }
+        return rows;
     }
 }

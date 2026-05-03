@@ -8,6 +8,13 @@ import com.mycompany.aplikasidekstopbengkeldansparepart.util.AutoCompleteComboBo
 import com.mycompany.aplikasidekstopbengkeldansparepart.util.DateUtil;
 import com.mycompany.aplikasidekstopbengkeldansparepart.util.MoneyUtil;
 import com.mycompany.aplikasidekstopbengkeldansparepart.util.SimpleDocumentListener;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -15,73 +22,172 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
 public class PurchaseTransactionPanelView extends javax.swing.JPanel {
 
     private DefaultTableModel detailModel;
+    private DefaultTableModel historyModel;
     private AutoCompleteComboBox.Controller supplierCodeController;
     private AutoCompleteComboBox.Controller partCodeController;
     private final Map<String, Sparepart> sparepartsByCode = new HashMap<>();
 
+    private JTextField purchaseNoField, purchaseDateField, paymentMethodField, statusField;
+    private JComboBox<String> supplierCodeCombo, partCodeCombo;
+    private JTextField partNameField, qtyField, unitPriceField;
+    private JLabel itemSubtotalValue, totalValue;
+    private JButton addItemButton, removeItemButton, newButton, saveButton, updateStatusButton;
+    private JTable detailTable, historyTable;
+    private JComboBox<String> statusUpdateCombo;
+
     public PurchaseTransactionPanelView() {
         initComponents();
-        customInit();
     }
 
-    private void customInit() {
+    private void initComponents() {
+        setLayout(new BorderLayout(14, 14));
         setBackground(UiTheme.BACKGROUND);
         setBorder(BorderFactory.createEmptyBorder(14, 14, 14, 14));
-        styleTextField(purchaseNoField); styleTextField(purchaseDateField);
-        styleComboBox(supplierCodeCombo);
-        styleTextField(paymentMethodField); styleTextField(statusField);
-        styleComboBox(partCodeCombo);
-        styleTextField(partNameField); styleTextField(qtyField); styleTextField(unitPriceField);
-        styleSecondaryButton(addItemButton); styleSecondaryButton(removeItemButton);
-        styleSecondaryButton(newButton); stylePrimaryButton(saveButton);
-        totalValue.setForeground(UiTheme.PRIMARY_DARK);
-        itemSubtotalValue.setForeground(UiTheme.PRIMARY_DARK);
-        purchaseDateField.setText(DateUtil.todayText()); statusField.setText("DRAFT"); qtyField.setText("1");
 
-        purchaseNoField.setEditable(false);
+        // === HEADER ===
+        JPanel headerPanel = createStyledPanel("Informasi Pembelian ke Supplier");
+        JPanel hf = new JPanel(new GridBagLayout()); hf.setOpaque(false);
+        GridBagConstraints g = gbc();
 
-        supplierCodeController = AutoCompleteComboBox.attach(supplierCodeCombo);
-        partCodeController = AutoCompleteComboBox.attach(partCodeCombo);
+        purchaseNoField = tf(14); purchaseNoField.setEditable(false);
+        purchaseDateField = tf(14); purchaseDateField.setText(DateUtil.todayText());
+        supplierCodeCombo = new JComboBox<>(); styleComboBox(supplierCodeCombo);
+        paymentMethodField = tf(16);
+        statusField = tf(12); statusField.setText("DRAFT");
 
-        partCodeCombo.addActionListener(e -> applySelectedPartToItemFields());
-        qtyField.getDocument().addDocumentListener((SimpleDocumentListener) event -> updateItemSubtotalPreview());
-        unitPriceField.getDocument().addDocumentListener((SimpleDocumentListener) event -> updateItemSubtotalPreview());
-        updateItemSubtotalPreview();
+        addField(hf, g, 0, 0, "No. Pembelian", purchaseNoField);
+        addField(hf, g, 2, 0, "Tanggal (yyyy-MM-dd)", purchaseDateField);
+        addField(hf, g, 0, 1, "Kode Supplier", supplierCodeCombo);
+        addField(hf, g, 2, 1, "Metode Bayar", paymentMethodField);
+        addField(hf, g, 0, 2, "Status", statusField);
+        headerPanel.add(hf, BorderLayout.CENTER);
 
-        detailModel = new DefaultTableModel(new String[]{"Kode", "Nama Part", "Qty", "Harga", "Subtotal"}, 0) {
+        // === DETAIL ===
+        JPanel detailPanel = createStyledPanel("Detail Item Pembelian");
+        JPanel ip = new JPanel(new GridBagLayout()); ip.setOpaque(false);
+        g = gbc();
+
+        partCodeCombo = new JComboBox<>(); styleComboBox(partCodeCombo);
+        partNameField = tf(20); qtyField = tf(6); qtyField.setText("1");
+        unitPriceField = tf(10);
+        itemSubtotalValue = new JLabel("Rp 0"); itemSubtotalValue.setForeground(UiTheme.PRIMARY_DARK);
+
+        addItemButton = styledBtn("Tambah Item", false);
+        removeItemButton = styledBtn("Hapus Item", false);
+
+        g.gridx=0;g.gridy=1;g.weightx=0;g.fill=GridBagConstraints.NONE;g.anchor=GridBagConstraints.WEST;
+        ip.add(new JLabel("Kode Part"), g);
+        g.gridx=1;g.fill=GridBagConstraints.HORIZONTAL;g.weightx=0.3;
+        ip.add(partCodeCombo, g);
+        g.gridx=2;g.weightx=0;g.fill=GridBagConstraints.NONE;
+        ip.add(new JLabel("Nama"), g);
+        g.gridx=3;g.weightx=1.0;g.fill=GridBagConstraints.HORIZONTAL;
+        ip.add(partNameField, g);
+
+        g.gridx=0;g.gridy=2;g.weightx=0;g.fill=GridBagConstraints.NONE;
+        ip.add(new JLabel("Qty"), g);
+        g.gridx=1;g.fill=GridBagConstraints.HORIZONTAL;
+        ip.add(qtyField, g);
+        g.gridx=2;g.weightx=0;g.fill=GridBagConstraints.NONE;
+        ip.add(new JLabel("Harga Satuan"), g);
+        g.gridx=3;g.fill=GridBagConstraints.HORIZONTAL;
+        ip.add(unitPriceField, g);
+        g.gridx=4;g.fill=GridBagConstraints.NONE;
+        ip.add(addItemButton, g);
+        g.gridx=5;g.anchor=GridBagConstraints.WEST;
+        ip.add(removeItemButton, g);
+
+        g.gridx=4;g.gridy=3;g.anchor=GridBagConstraints.EAST;
+        ip.add(new JLabel("Subtotal"), g);
+        g.gridx=5;g.anchor=GridBagConstraints.WEST;
+        ip.add(itemSubtotalValue, g);
+
+        detailPanel.add(ip, BorderLayout.NORTH);
+
+        detailModel = new DefaultTableModel(
+                new String[]{"Kode", "Nama Part", "Qty", "Harga", "Subtotal"}, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
-        detailTable.setModel(detailModel);
+        detailTable = new JTable(detailModel);
         UiTheme.styleTable(detailTable);
+        detailPanel.add(new JScrollPane(detailTable), BorderLayout.CENTER);
+
+        // === FOOTER ===
+        JPanel footerPanel = new JPanel(new BorderLayout()); footerPanel.setOpaque(false);
+        JPanel tp = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0)); tp.setOpaque(false);
+        JLabel tl = new JLabel("Total Pembelian:"); tl.setFont(new Font("Segoe UI",Font.BOLD,14)); tp.add(tl);
+        totalValue = new JLabel("Rp 0"); totalValue.setFont(new Font("Segoe UI",Font.BOLD,20));
+        totalValue.setForeground(UiTheme.PRIMARY_DARK); tp.add(totalValue);
+        footerPanel.add(tp, BorderLayout.NORTH);
+        JPanel ap = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0)); ap.setOpaque(false);
+        newButton = styledBtn("Transaksi Baru", false);
+        saveButton = styledBtn("Simpan Pembelian", true);
+        ap.add(newButton); ap.add(saveButton);
+        footerPanel.add(ap, BorderLayout.SOUTH);
+
+        // === HISTORY ===
+        JPanel historyPanel = createStyledPanel(null);
+        JPanel hh = new JPanel(new BorderLayout(10,0)); hh.setOpaque(false);
+        JLabel ht = new JLabel("Riwayat Transaksi Pembelian"); ht.setFont(new Font("Segoe UI",Font.BOLD,14));
+        hh.add(ht, BorderLayout.WEST);
+        JPanel sup = new JPanel(new FlowLayout(FlowLayout.RIGHT,8,0)); sup.setOpaque(false);
+        sup.add(new JLabel("Ubah Status:"));
+        statusUpdateCombo = new JComboBox<>(new String[]{"DRAFT","PROSES","SELESAI","DIBATALKAN"});
+        styleComboBox(statusUpdateCombo); sup.add(statusUpdateCombo);
+        updateStatusButton = styledBtn("Update Status", true); sup.add(updateStatusButton);
+        hh.add(sup, BorderLayout.EAST);
+        historyPanel.add(hh, BorderLayout.NORTH);
+
+        historyModel = new DefaultTableModel(
+                new String[]{"No Pembelian","Tanggal","Supplier","Status","Total"}, 0) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        };
+        historyTable = new JTable(historyModel);
+        UiTheme.styleTable(historyTable);
+        historyPanel.add(new JScrollPane(historyTable), BorderLayout.CENTER);
+
+        // === TABS ===
+        JTabbedPane tabPane = new JTabbedPane();
+        tabPane.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        JPanel mainInput = new JPanel(new BorderLayout(14,14)); mainInput.setOpaque(false);
+        mainInput.add(headerPanel, BorderLayout.NORTH);
+        mainInput.add(detailPanel, BorderLayout.CENTER);
+        mainInput.add(footerPanel, BorderLayout.SOUTH);
+        tabPane.addTab("Input Transaksi Baru", mainInput);
+        tabPane.addTab("Riwayat & Update Status", historyPanel);
+        add(tabPane, BorderLayout.CENTER);
+
+        // === WIRE EVENTS ===
+        supplierCodeController = AutoCompleteComboBox.attach(supplierCodeCombo);
+        partCodeController = AutoCompleteComboBox.attach(partCodeCombo);
+        
+        partCodeCombo.addActionListener(e -> applySelectedPartToItemFields());
+        qtyField.getDocument().addDocumentListener((SimpleDocumentListener) ev -> updateItemSubtotalPreview());
+        unitPriceField.getDocument().addDocumentListener((SimpleDocumentListener) ev -> updateItemSubtotalPreview());
+        updateItemSubtotalPreview();
     }
 
-    private void styleTextField(javax.swing.JTextField f) {
-        f.setFont(UiTheme.FONT_BODY); f.setMargin(UiTheme.FIELD_INSETS);
-        f.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(UiTheme.BORDER), BorderFactory.createEmptyBorder(2,2,2,2)));
-    }
-    private void styleComboBox(javax.swing.JComboBox<?> combo) {
-        combo.setFont(UiTheme.FONT_BODY);
-        combo.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(UiTheme.BORDER), BorderFactory.createEmptyBorder(2,2,2,2)));
-    }
-    private void stylePrimaryButton(javax.swing.JButton b) {
-        b.setFont(UiTheme.FONT_BODY); b.setForeground(java.awt.Color.WHITE); b.setBackground(UiTheme.PRIMARY);
-        b.setBorder(BorderFactory.createEmptyBorder(10,16,10,16)); b.setFocusPainted(false); b.setContentAreaFilled(false); b.setOpaque(true);
-    }
-    private void styleSecondaryButton(javax.swing.JButton b) {
-        b.setFont(UiTheme.FONT_BODY); b.setForeground(UiTheme.TEXT_PRIMARY); b.setBackground(UiTheme.SIDEBAR_BUTTON);
-        b.setBorder(BorderFactory.createEmptyBorder(10,16,10,16)); b.setFocusPainted(false); b.setContentAreaFilled(false); b.setOpaque(true);
-    }
-
+    // ===== PUBLIC LISTENER METHODS =====
     public void addAddItemListener(ActionListener l) { addItemButton.addActionListener(l); }
     public void addRemoveItemListener(ActionListener l) { removeItemButton.addActionListener(l); }
     public void addSaveListener(ActionListener l) { saveButton.addActionListener(l); }
     public void addNewListener(ActionListener l) { newButton.addActionListener(l); }
+    public void addUpdateStatusListener(ActionListener l) { updateStatusButton.addActionListener(l); }
 
+    // ===== PUBLIC GETTERS =====
     public String getPurchaseNo() { return purchaseNoField.getText().trim(); }
     public String getPurchaseDateText() { return purchaseDateField.getText().trim(); }
     public String getSupplierCode() { return extractCode(supplierCodeController.getSelectedText()); }
@@ -92,32 +198,28 @@ public class PurchaseTransactionPanelView extends javax.swing.JPanel {
     public int getItemQty() { try { return Integer.parseInt(qtyField.getText().trim()); } catch (Exception e) { return 0; } }
     public BigDecimal getUnitPrice() { return MoneyUtil.parse(unitPriceField.getText()); }
 
-    public void setPurchaseNo(String purchaseNo) {
-        purchaseNoField.setText(purchaseNo == null ? "" : purchaseNo);
-    }
+    // ===== PUBLIC SETTERS =====
+    public void setPurchaseNo(String purchaseNo) { purchaseNoField.setText(purchaseNo == null ? "" : purchaseNo); }
 
     public void setSupplierOptions(List<Supplier> suppliers) {
         List<String> options = new ArrayList<>();
-        for (Supplier supplier : suppliers) {
-            options.add(formatOption(supplier.getSupplierCode(), supplier.getName()));
-        }
+        for (Supplier s : suppliers) options.add(formatOption(s.getSupplierCode(), s.getName()));
         supplierCodeController.setItems(options);
     }
 
     public void setSparepartOptions(List<Sparepart> spareparts) {
         sparepartsByCode.clear();
         List<String> options = new ArrayList<>();
-        for (Sparepart sparepart : spareparts) {
-            sparepartsByCode.put(sparepart.getPartCode(), sparepart);
-            options.add(formatOption(sparepart.getPartCode(), sparepart.getName()));
+        for (Sparepart sp : spareparts) {
+            sparepartsByCode.put(sp.getPartCode(), sp);
+            options.add(formatOption(sp.getPartCode(), sp.getName()));
         }
         partCodeController.setItems(options);
     }
 
     public void clearItemInput() {
         partCodeController.setSelectedItem("");
-        partNameField.setText(""); qtyField.setText("1");
-        unitPriceField.setText("");
+        partNameField.setText(""); qtyField.setText("1"); unitPriceField.setText("");
         updateItemSubtotalPreview();
         partCodeCombo.requestFocus();
     }
@@ -162,17 +264,28 @@ public class PurchaseTransactionPanelView extends javax.swing.JPanel {
 
     public void setTotalValue(BigDecimal value) { totalValue.setText(MoneyUtil.format(value)); }
 
+    // --- History ---
+    public String getSelectedHistoryPurchaseNo() {
+        int sel = historyTable.getSelectedRow();
+        return sel >= 0 ? String.valueOf(historyModel.getValueAt(sel, 0)) : null;
+    }
+    public String getNewStatusSelection() { return String.valueOf(statusUpdateCombo.getSelectedItem()); }
+    
+    public void setHistoryRows(List<Object[]> rows) {
+        historyModel.setRowCount(0);
+        for (Object[] row : rows) {
+            Object[] dr = {row[0], row[1], row[2], row[3],
+                row[4] instanceof BigDecimal ? MoneyUtil.format((BigDecimal) row[4]) : row[4]};
+            historyModel.addRow(dr);
+        }
+    }
+
+    // ===== INTERNAL =====
     private void applySelectedPartToItemFields() {
         String code = extractCode(partCodeController.getSelectedText());
-        if (code.isBlank()) {
-            return;
-        }
-
+        if (code.isBlank()) return;
         Sparepart sparepart = sparepartsByCode.get(code);
-        if (sparepart == null) {
-            return;
-        }
-
+        if (sparepart == null) return;
         partNameField.setText(sparepart.getName());
         unitPriceField.setText(MoneyUtil.format(sparepart.getPurchasePrice()));
         updateItemSubtotalPreview();
@@ -186,221 +299,49 @@ public class PurchaseTransactionPanelView extends javax.swing.JPanel {
     }
 
     private static String formatOption(String code, String name) {
-        String safeCode = code == null ? "" : code.trim();
-        String safeName = name == null ? "" : name.trim();
-        return safeCode + " - " + safeName;
+        return (code == null ? "" : code.trim()) + " - " + (name == null ? "" : name.trim());
     }
-
+    
     private static String extractCode(String display) {
-        if (display == null) {
-            return "";
-        }
-        String trimmed = display.trim();
-        int separator = trimmed.indexOf(" - ");
-        return separator > 0 ? trimmed.substring(0, separator).trim() : trimmed;
+        if (display == null) return "";
+        String t = display.trim(); int s = t.indexOf(" - ");
+        return s > 0 ? t.substring(0, s).trim() : t;
     }
 
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
-        java.awt.GridBagConstraints gridBagConstraints;
-
-        headerPanel = new javax.swing.JPanel();
-        headerTitleLabel = new javax.swing.JLabel();
-        headerFieldsPanel = new javax.swing.JPanel();
-        purchaseNoLabel = new javax.swing.JLabel();
-        purchaseNoField = new javax.swing.JTextField();
-        purchaseDateLabel = new javax.swing.JLabel();
-        purchaseDateField = new javax.swing.JTextField();
-        supplierCodeLabel = new javax.swing.JLabel();
-        supplierCodeCombo = new javax.swing.JComboBox<>();
-        paymentMethodLabel = new javax.swing.JLabel();
-        paymentMethodField = new javax.swing.JTextField();
-        statusLabel = new javax.swing.JLabel();
-        statusField = new javax.swing.JTextField();
-        detailPanel = new javax.swing.JPanel();
-        itemInputPanel = new javax.swing.JPanel();
-        detailTitleLabel = new javax.swing.JLabel();
-        partCodeLabel = new javax.swing.JLabel();
-        partCodeCombo = new javax.swing.JComboBox<>();
-        partNameLabel = new javax.swing.JLabel();
-        partNameField = new javax.swing.JTextField();
-        qtyLabel = new javax.swing.JLabel();
-        qtyField = new javax.swing.JTextField();
-        unitPriceLabel = new javax.swing.JLabel();
-        unitPriceField = new javax.swing.JTextField();
-        itemSubtotalLabel = new javax.swing.JLabel();
-        itemSubtotalValue = new javax.swing.JLabel();
-        addItemButton = new javax.swing.JButton();
-        removeItemButton = new javax.swing.JButton();
-        detailScrollPane = new javax.swing.JScrollPane();
-        detailTable = new javax.swing.JTable();
-        footerPanel = new javax.swing.JPanel();
-        totalPanel = new javax.swing.JPanel();
-        totalTextLabel = new javax.swing.JLabel();
-        totalValue = new javax.swing.JLabel();
-        footerActionsPanel = new javax.swing.JPanel();
-        newButton = new javax.swing.JButton();
-        saveButton = new javax.swing.JButton();
-
-        setLayout(new java.awt.BorderLayout(14, 14));
-
-        headerPanel.setBackground(new java.awt.Color(255, 255, 255));
-        headerPanel.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(216, 222, 230)), javax.swing.BorderFactory.createEmptyBorder(12, 12, 12, 12)));
-        headerPanel.setLayout(new java.awt.BorderLayout(10, 10));
-        headerTitleLabel.setFont(new java.awt.Font("Segoe UI", 1, 14));
-        headerTitleLabel.setText("Informasi Pembelian ke Supplier");
-        headerPanel.add(headerTitleLabel, java.awt.BorderLayout.NORTH);
-        headerFieldsPanel.setOpaque(false);
-        headerFieldsPanel.setLayout(new java.awt.GridBagLayout());
-
-        purchaseNoLabel.setText("No. Pembelian");
-        gridBagConstraints = new java.awt.GridBagConstraints(); gridBagConstraints.gridx=0; gridBagConstraints.gridy=0; gridBagConstraints.fill=java.awt.GridBagConstraints.HORIZONTAL; gridBagConstraints.insets=new java.awt.Insets(6,6,6,6);
-        headerFieldsPanel.add(purchaseNoLabel, gridBagConstraints);
-        purchaseNoField.setColumns(14);
-        gridBagConstraints = new java.awt.GridBagConstraints(); gridBagConstraints.gridx=1; gridBagConstraints.gridy=0; gridBagConstraints.fill=java.awt.GridBagConstraints.HORIZONTAL; gridBagConstraints.weightx=1.0; gridBagConstraints.insets=new java.awt.Insets(6,6,6,6);
-        headerFieldsPanel.add(purchaseNoField, gridBagConstraints);
-        purchaseDateLabel.setText("Tanggal (yyyy-MM-dd)");
-        gridBagConstraints = new java.awt.GridBagConstraints(); gridBagConstraints.gridx=2; gridBagConstraints.gridy=0; gridBagConstraints.fill=java.awt.GridBagConstraints.HORIZONTAL; gridBagConstraints.insets=new java.awt.Insets(6,6,6,6);
-        headerFieldsPanel.add(purchaseDateLabel, gridBagConstraints);
-        purchaseDateField.setColumns(14);
-        gridBagConstraints = new java.awt.GridBagConstraints(); gridBagConstraints.gridx=3; gridBagConstraints.gridy=0; gridBagConstraints.fill=java.awt.GridBagConstraints.HORIZONTAL; gridBagConstraints.weightx=1.0; gridBagConstraints.insets=new java.awt.Insets(6,6,6,6);
-        headerFieldsPanel.add(purchaseDateField, gridBagConstraints);
-        supplierCodeLabel.setText("Kode Supplier");
-        gridBagConstraints = new java.awt.GridBagConstraints(); gridBagConstraints.gridx=0; gridBagConstraints.gridy=1; gridBagConstraints.fill=java.awt.GridBagConstraints.HORIZONTAL; gridBagConstraints.insets=new java.awt.Insets(6,6,6,6);
-        headerFieldsPanel.add(supplierCodeLabel, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints(); gridBagConstraints.gridx=1; gridBagConstraints.gridy=1; gridBagConstraints.fill=java.awt.GridBagConstraints.HORIZONTAL; gridBagConstraints.weightx=1.0; gridBagConstraints.insets=new java.awt.Insets(6,6,6,6);
-        headerFieldsPanel.add(supplierCodeCombo, gridBagConstraints);
-        paymentMethodLabel.setText("Metode Bayar");
-        gridBagConstraints = new java.awt.GridBagConstraints(); gridBagConstraints.gridx=2; gridBagConstraints.gridy=1; gridBagConstraints.fill=java.awt.GridBagConstraints.HORIZONTAL; gridBagConstraints.insets=new java.awt.Insets(6,6,6,6);
-        headerFieldsPanel.add(paymentMethodLabel, gridBagConstraints);
-        paymentMethodField.setColumns(16);
-        gridBagConstraints = new java.awt.GridBagConstraints(); gridBagConstraints.gridx=3; gridBagConstraints.gridy=1; gridBagConstraints.fill=java.awt.GridBagConstraints.HORIZONTAL; gridBagConstraints.weightx=1.0; gridBagConstraints.insets=new java.awt.Insets(6,6,6,6);
-        headerFieldsPanel.add(paymentMethodField, gridBagConstraints);
-        statusLabel.setText("Status");
-        gridBagConstraints = new java.awt.GridBagConstraints(); gridBagConstraints.gridx=0; gridBagConstraints.gridy=2; gridBagConstraints.fill=java.awt.GridBagConstraints.HORIZONTAL; gridBagConstraints.insets=new java.awt.Insets(6,6,6,6);
-        headerFieldsPanel.add(statusLabel, gridBagConstraints);
-        statusField.setColumns(12);
-        gridBagConstraints = new java.awt.GridBagConstraints(); gridBagConstraints.gridx=1; gridBagConstraints.gridy=2; gridBagConstraints.fill=java.awt.GridBagConstraints.HORIZONTAL; gridBagConstraints.weightx=1.0; gridBagConstraints.insets=new java.awt.Insets(6,6,6,6);
-        headerFieldsPanel.add(statusField, gridBagConstraints);
-
-        headerPanel.add(headerFieldsPanel, java.awt.BorderLayout.CENTER);
-        add(headerPanel, java.awt.BorderLayout.NORTH);
-
-        detailPanel.setBackground(new java.awt.Color(255, 255, 255));
-        detailPanel.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(216, 222, 230)), javax.swing.BorderFactory.createEmptyBorder(12, 12, 12, 12)));
-        detailPanel.setLayout(new java.awt.BorderLayout(10, 10));
-        itemInputPanel.setOpaque(false);
-        itemInputPanel.setLayout(new java.awt.GridBagLayout());
-        java.awt.GridBagConstraints gbc;
-
-        detailTitleLabel.setFont(new java.awt.Font("Segoe UI", 1, 14));
-        detailTitleLabel.setText("Detail Item Pembelian");
-        gbc = new java.awt.GridBagConstraints(); gbc.gridx=0; gbc.gridy=0; gbc.gridwidth=java.awt.GridBagConstraints.REMAINDER; gbc.anchor=java.awt.GridBagConstraints.WEST; gbc.insets=new java.awt.Insets(0,4,8,4);
-        itemInputPanel.add(detailTitleLabel, gbc);
-
-        partCodeLabel.setText("Kode");
-        gbc = new java.awt.GridBagConstraints(); gbc.gridx=0; gbc.gridy=1; gbc.anchor=java.awt.GridBagConstraints.WEST; gbc.insets=new java.awt.Insets(4,4,4,4);
-        itemInputPanel.add(partCodeLabel, gbc);
-        gbc = new java.awt.GridBagConstraints(); gbc.gridx=1; gbc.gridy=1; gbc.fill=java.awt.GridBagConstraints.HORIZONTAL; gbc.weightx=0.3; gbc.insets=new java.awt.Insets(4,4,4,4);
-        itemInputPanel.add(partCodeCombo, gbc);
-
-        partNameLabel.setText("Nama");
-        gbc = new java.awt.GridBagConstraints(); gbc.gridx=2; gbc.gridy=1; gbc.anchor=java.awt.GridBagConstraints.WEST; gbc.insets=new java.awt.Insets(4,4,4,4);
-        itemInputPanel.add(partNameLabel, gbc);
-        partNameField.setColumns(20);
-        gbc = new java.awt.GridBagConstraints(); gbc.gridx=3; gbc.gridy=1; gbc.fill=java.awt.GridBagConstraints.HORIZONTAL; gbc.weightx=1.0; gbc.insets=new java.awt.Insets(4,4,4,4);
-        itemInputPanel.add(partNameField, gbc);
-
-        qtyLabel.setText("Qty");
-        gbc = new java.awt.GridBagConstraints(); gbc.gridx=0; gbc.gridy=2; gbc.anchor=java.awt.GridBagConstraints.WEST; gbc.insets=new java.awt.Insets(4,4,4,4);
-        itemInputPanel.add(qtyLabel, gbc);
-        qtyField.setColumns(6);
-        gbc = new java.awt.GridBagConstraints(); gbc.gridx=1; gbc.gridy=2; gbc.fill=java.awt.GridBagConstraints.HORIZONTAL; gbc.insets=new java.awt.Insets(4,4,4,4);
-        itemInputPanel.add(qtyField, gbc);
-
-        unitPriceLabel.setText("Harga Satuan");
-        gbc = new java.awt.GridBagConstraints(); gbc.gridx=2; gbc.gridy=2; gbc.anchor=java.awt.GridBagConstraints.WEST; gbc.insets=new java.awt.Insets(4,4,4,4);
-        itemInputPanel.add(unitPriceLabel, gbc);
-        unitPriceField.setColumns(10);
-        gbc = new java.awt.GridBagConstraints(); gbc.gridx=3; gbc.gridy=2; gbc.fill=java.awt.GridBagConstraints.HORIZONTAL; gbc.weightx=1.0; gbc.insets=new java.awt.Insets(4,4,4,4);
-        itemInputPanel.add(unitPriceField, gbc);
-
-        itemSubtotalLabel.setText("Subtotal");
-        gbc = new java.awt.GridBagConstraints(); gbc.gridx=4; gbc.gridy=3; gbc.anchor=java.awt.GridBagConstraints.EAST; gbc.insets=new java.awt.Insets(4,4,4,4);
-        itemInputPanel.add(itemSubtotalLabel, gbc);
-        itemSubtotalValue.setText("Rp 0");
-        gbc = new java.awt.GridBagConstraints(); gbc.gridx=5; gbc.gridy=3; gbc.anchor=java.awt.GridBagConstraints.WEST; gbc.insets=new java.awt.Insets(4,4,4,4);
-        itemInputPanel.add(itemSubtotalValue, gbc);
-
-        addItemButton.setText("Tambah Item");
-        gbc = new java.awt.GridBagConstraints(); gbc.gridx=4; gbc.gridy=1; gbc.insets=new java.awt.Insets(4,4,4,4);
-        itemInputPanel.add(addItemButton, gbc);
-        removeItemButton.setText("Hapus Item");
-        gbc = new java.awt.GridBagConstraints(); gbc.gridx=4; gbc.gridy=2; gbc.insets=new java.awt.Insets(4,4,4,4);
-        itemInputPanel.add(removeItemButton, gbc);
-
-        detailPanel.add(itemInputPanel, java.awt.BorderLayout.NORTH);
-        detailScrollPane.setViewportView(detailTable);
-        detailPanel.add(detailScrollPane, java.awt.BorderLayout.CENTER);
-        add(detailPanel, java.awt.BorderLayout.CENTER);
-
-        footerPanel.setOpaque(false);
-        footerPanel.setLayout(new java.awt.BorderLayout());
-        totalPanel.setOpaque(false);
-        totalPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 0));
-        totalTextLabel.setFont(new java.awt.Font("Segoe UI", 1, 14));
-        totalTextLabel.setText("Total Pembelian:");
-        totalPanel.add(totalTextLabel);
-        totalValue.setFont(new java.awt.Font("Segoe UI", 1, 20));
-        totalValue.setText("Rp 0");
-        totalPanel.add(totalValue);
-        footerPanel.add(totalPanel, java.awt.BorderLayout.NORTH);
-        footerActionsPanel.setOpaque(false);
-        footerActionsPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
-        newButton.setText("Transaksi Baru"); footerActionsPanel.add(newButton);
-        saveButton.setText("Simpan Pembelian"); footerActionsPanel.add(saveButton);
-        footerPanel.add(footerActionsPanel, java.awt.BorderLayout.SOUTH);
-        add(footerPanel, java.awt.BorderLayout.SOUTH);
-    }// </editor-fold>//GEN-END:initComponents
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton addItemButton;
-    private javax.swing.JPanel detailPanel;
-    private javax.swing.JScrollPane detailScrollPane;
-    private javax.swing.JTable detailTable;
-    private javax.swing.JLabel detailTitleLabel;
-    private javax.swing.JPanel footerActionsPanel;
-    private javax.swing.JPanel footerPanel;
-    private javax.swing.JPanel headerFieldsPanel;
-    private javax.swing.JPanel headerPanel;
-    private javax.swing.JLabel headerTitleLabel;
-    private javax.swing.JPanel itemInputPanel;
-    private javax.swing.JButton newButton;
-    private javax.swing.JComboBox<String> partCodeCombo;
-    private javax.swing.JLabel partCodeLabel;
-    private javax.swing.JTextField partNameField;
-    private javax.swing.JLabel partNameLabel;
-    private javax.swing.JTextField paymentMethodField;
-    private javax.swing.JLabel paymentMethodLabel;
-    private javax.swing.JTextField purchaseDateField;
-    private javax.swing.JLabel purchaseDateLabel;
-    private javax.swing.JTextField purchaseNoField;
-    private javax.swing.JLabel purchaseNoLabel;
-    private javax.swing.JTextField qtyField;
-    private javax.swing.JLabel qtyLabel;
-    private javax.swing.JButton removeItemButton;
-    private javax.swing.JButton saveButton;
-    private javax.swing.JTextField statusField;
-    private javax.swing.JLabel statusLabel;
-    private javax.swing.JComboBox<String> supplierCodeCombo;
-    private javax.swing.JLabel supplierCodeLabel;
-    private javax.swing.JLabel itemSubtotalLabel;
-    private javax.swing.JLabel itemSubtotalValue;
-    private javax.swing.JLabel totalTextLabel;
-    private javax.swing.JPanel totalPanel;
-    private javax.swing.JLabel totalValue;
-    private javax.swing.JTextField unitPriceField;
-    private javax.swing.JLabel unitPriceLabel;
-    // End of variables declaration//GEN-END:variables
+    // ===== UI HELPERS =====
+    private JPanel createStyledPanel(String title) {
+        JPanel p = new JPanel(new BorderLayout(10,10));
+        p.setBackground(Color.WHITE);
+        p.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(UiTheme.BORDER),
+                BorderFactory.createEmptyBorder(12,12,12,12)));
+        if (title != null) { JLabel l = new JLabel(title); l.setFont(new Font("Segoe UI",Font.BOLD,14)); p.add(l, BorderLayout.NORTH); }
+        return p;
+    }
+    private JTextField tf(int cols) { JTextField f = new JTextField(cols); styleTextField(f); return f; }
+    private GridBagConstraints gbc() { GridBagConstraints g = new GridBagConstraints(); g.insets = new Insets(4,4,4,4); return g; }
+    private void addField(JPanel p, GridBagConstraints g, int x, int y, String label, java.awt.Component field) {
+        g.gridx=x; g.gridy=y; g.weightx=0; g.fill=GridBagConstraints.HORIZONTAL; p.add(new JLabel(label), g);
+        g.gridx=x+1; g.weightx=1.0; p.add(field, g);
+    }
+    private JButton styledBtn(String text, boolean primary) {
+        JButton b = new JButton(text);
+        if (primary) stylePrimaryButton(b); else styleSecondaryButton(b);
+        return b;
+    }
+    private void styleTextField(JTextField f) {
+        f.setFont(UiTheme.FONT_BODY); f.setMargin(UiTheme.FIELD_INSETS);
+        f.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(UiTheme.BORDER), BorderFactory.createEmptyBorder(2,2,2,2)));
+    }
+    private void styleComboBox(JComboBox<?> c) {
+        c.setFont(UiTheme.FONT_BODY);
+        c.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(UiTheme.BORDER), BorderFactory.createEmptyBorder(2,2,2,2)));
+    }
+    private void stylePrimaryButton(JButton b) {
+        b.setFont(UiTheme.FONT_BODY); b.setForeground(Color.WHITE); b.setBackground(UiTheme.PRIMARY);
+        b.setBorder(BorderFactory.createEmptyBorder(10,16,10,16)); b.setFocusPainted(false); b.setContentAreaFilled(false); b.setOpaque(true);
+    }
+    private void styleSecondaryButton(JButton b) {
+        b.setFont(UiTheme.FONT_BODY); b.setForeground(UiTheme.TEXT_PRIMARY); b.setBackground(UiTheme.SIDEBAR_BUTTON);
+        b.setBorder(BorderFactory.createEmptyBorder(10,16,10,16)); b.setFocusPainted(false); b.setContentAreaFilled(false); b.setOpaque(true);
+    }
 }

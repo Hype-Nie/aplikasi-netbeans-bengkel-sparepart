@@ -52,6 +52,10 @@ public class AdminDashboardController {
 
     private void bindActions() {
         view.addLogoutListener(e -> handleLogout());
+
+        view.addTabSelectListener(AdminDashboardView.KEY_SERVIS, () -> serviceTransactionController.loadReferenceData());
+        view.addTabSelectListener(AdminDashboardView.KEY_PEMBELIAN, () -> purchaseTransactionController.loadReferenceData());
+        view.addTabSelectListener(AdminDashboardView.KEY_PENJUALAN, () -> saleTransactionController.loadReferenceData());
     }
 
     private void handleLogout() {

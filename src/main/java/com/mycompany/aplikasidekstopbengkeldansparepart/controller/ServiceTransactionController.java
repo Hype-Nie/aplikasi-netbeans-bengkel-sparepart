@@ -47,7 +47,7 @@ public class ServiceTransactionController {
         view.addUpdateStatusListener(e -> handleUpdateStatus());
     }
 
-    private void loadReferenceData() {
+    public void loadReferenceData() {
         try {
             view.setCustomerOptions(customerDao.findAll());
             view.setSparepartOptions(sparepartDao.findAll());
