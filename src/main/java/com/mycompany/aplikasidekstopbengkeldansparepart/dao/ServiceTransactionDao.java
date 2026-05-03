@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,15 +52,15 @@ public class ServiceTransactionDao {
 
         String insertItemSql = """
                 INSERT INTO service_transaction_items (
-                    service_transaction_id, item_type, item_code, description,
-                    qty, price, subtotal
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    service_transaction_id, item_type, sparepart_id, service_id,
+                    description, qty, price, subtotal
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """;
 
         String reduceStockSql = """
                 UPDATE spareparts
                 SET stock = stock - ?
-                WHERE part_code = ? AND stock >= ?
+                WHERE id = ? AND stock >= ?
                 """;
 
         try (Connection connection = DatabaseConnection.getConnection()) {
@@ -102,22 +103,37 @@ public class ServiceTransactionDao {
                     for (ServiceItem item : items) {
                         itemStatement.setInt(1, serviceTransactionId);
                         itemStatement.setString(2, item.getItemType());
-                        itemStatement.setString(3, item.getItemCode());
-                        itemStatement.setString(4, item.getDescription());
-                        itemStatement.setInt(5, item.getQty());
-                        itemStatement.setBigDecimal(6, item.getPrice());
-                        itemStatement.setBigDecimal(7, item.getSubtotal());
+
+                        // Set sparepart_id (nullable)
+                        if (item.getSparepartId() != null) {
+                            itemStatement.setInt(3, item.getSparepartId());
+                        } else {
+                            itemStatement.setNull(3, Types.INTEGER);
+                        }
+
+                        // Set service_id (nullable)
+                        if (item.getServiceId() != null) {
+                            itemStatement.setInt(4, item.getServiceId());
+                        } else {
+                            itemStatement.setNull(4, Types.INTEGER);
+                        }
+
+                        itemStatement.setString(5, item.getDescription());
+                        itemStatement.setInt(6, item.getQty());
+                        itemStatement.setBigDecimal(7, item.getPrice());
+                        itemStatement.setBigDecimal(8, item.getSubtotal());
                         itemStatement.addBatch();
 
-                        if ("PART".equalsIgnoreCase(item.getItemType())) {
+                        // Reduce stock for PART items using FK-based id
+                        if ("PART".equalsIgnoreCase(item.getItemType()) && item.getSparepartId() != null) {
                             stockStatement.setInt(1, item.getQty());
-                            stockStatement.setString(2, item.getItemCode());
+                            stockStatement.setInt(2, item.getSparepartId());
                             stockStatement.setInt(3, item.getQty());
 
                             int updatedRows = stockStatement.executeUpdate();
                             if (updatedRows == 0) {
-                                throw new SQLException("Stok part tidak cukup atau kode part tidak ditemukan: "
-                                        + item.getItemCode());
+                                throw new SQLException("Stok part tidak cukup atau ID part tidak ditemukan: "
+                                        + item.getSparepartId());
                             }
                         }
                     }

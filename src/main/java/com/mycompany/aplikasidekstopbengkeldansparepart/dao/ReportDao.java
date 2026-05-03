@@ -74,6 +74,36 @@ public class ReportDao {
         return rows;
     }
 
+    public List<Object[]> findSaleTransactions(String dateFrom, String dateTo) throws SQLException {
+        String sql = """
+                SELECT st.sale_no, st.sale_date, COALESCE(c.name, 'Umum') AS customer_name,
+                       st.payment_method, st.total
+                FROM sale_transactions st
+                LEFT JOIN customers c ON c.id = st.customer_id
+                WHERE st.sale_date BETWEEN ? AND ?
+                ORDER BY st.sale_date DESC, st.id DESC
+                """;
+
+        List<Object[]> rows = new ArrayList<>();
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, dateFrom);
+            stmt.setString(2, dateTo);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    rows.add(new Object[]{
+                        rs.getString("sale_no"),
+                        rs.getDate("sale_date").toLocalDate().toString(),
+                        rs.getString("customer_name"),
+                        rs.getString("payment_method"),
+                        rs.getBigDecimal("total")
+                    });
+                }
+            }
+        }
+        return rows;
+    }
+
     public BigDecimal sumServiceTotal(String dateFrom, String dateTo) throws SQLException {
         String sql = "SELECT COALESCE(SUM(total), 0) FROM service_transactions WHERE service_date BETWEEN ? AND ?";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -88,6 +118,18 @@ public class ReportDao {
 
     public BigDecimal sumPurchaseTotal(String dateFrom, String dateTo) throws SQLException {
         String sql = "SELECT COALESCE(SUM(total), 0) FROM purchase_transactions WHERE purchase_date BETWEEN ? AND ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, dateFrom);
+            stmt.setString(2, dateTo);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next() ? rs.getBigDecimal(1) : BigDecimal.ZERO;
+            }
+        }
+    }
+
+    public BigDecimal sumSaleTotal(String dateFrom, String dateTo) throws SQLException {
+        String sql = "SELECT COALESCE(SUM(total), 0) FROM sale_transactions WHERE sale_date BETWEEN ? AND ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, dateFrom);

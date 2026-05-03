@@ -1,6 +1,7 @@
 package com.mycompany.aplikasidekstopbengkeldansparepart.controller;
 
 import com.mycompany.aplikasidekstopbengkeldansparepart.dao.CustomerDao;
+import com.mycompany.aplikasidekstopbengkeldansparepart.dao.ServiceDao;
 import com.mycompany.aplikasidekstopbengkeldansparepart.dao.ServiceTransactionDao;
 import com.mycompany.aplikasidekstopbengkeldansparepart.dao.SparepartDao;
 import com.mycompany.aplikasidekstopbengkeldansparepart.model.ServiceItem;
@@ -21,20 +22,17 @@ public class ServiceTransactionController {
     private final ServiceTransactionDao dao;
     private final CustomerDao customerDao = new CustomerDao();
     private final SparepartDao sparepartDao = new SparepartDao();
+    private final ServiceDao serviceDao = new ServiceDao();
     private final int adminId;
     private final DashboardController dashboardController;
 
     public ServiceTransactionController(
-            ServiceTransactionPanelView view,
-            ServiceTransactionDao dao,
-            int adminId,
-            DashboardController dashboardController
-    ) {
+            ServiceTransactionPanelView view, ServiceTransactionDao dao,
+            int adminId, DashboardController dashboardController) {
         this.view = view;
         this.dao = dao;
         this.adminId = adminId;
         this.dashboardController = dashboardController;
-
         bindActions();
         loadReferenceData();
         prepareNewForm();
@@ -53,13 +51,10 @@ public class ServiceTransactionController {
         try {
             view.setCustomerOptions(customerDao.findAll());
             view.setSparepartOptions(sparepartDao.findAll());
+            view.setServiceOptions(serviceDao.findAll());
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(
-                    view,
-                    "Gagal memuat data referensi: " + ex.getMessage(),
-                    "Database Error",
-                    JOptionPane.ERROR_MESSAGE
-            );
+            JOptionPane.showMessageDialog(view, "Gagal memuat data referensi: " + ex.getMessage(),
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -69,18 +64,13 @@ public class ServiceTransactionController {
             String serviceNo = dao.getNextServiceNo(SERVICE_PREFIX, CodeGenerator.currentYearMonth());
             view.setServiceNo(serviceNo);
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(
-                    view,
-                    "Gagal generate nomor servis: " + ex.getMessage(),
-                    "Database Error",
-                    JOptionPane.ERROR_MESSAGE
-            );
+            JOptionPane.showMessageDialog(view, "Gagal generate nomor servis: " + ex.getMessage(),
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void handleAddItem() {
         String type = view.getItemType();
-        String code = view.getItemCode();
         String description = view.getItemDescription();
         int qty = view.getItemQty();
         BigDecimal price = view.getItemPrice();
@@ -89,23 +79,28 @@ public class ServiceTransactionController {
             JOptionPane.showMessageDialog(view, "Deskripsi item wajib diisi.", "Validasi", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
-        if ("PART".equalsIgnoreCase(type) && code.isBlank()) {
-            JOptionPane.showMessageDialog(view, "Kode part wajib diisi untuk item tipe PART.", "Validasi", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
         if (qty <= 0) {
             JOptionPane.showMessageDialog(view, "Qty harus lebih dari 0.", "Validasi", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
         if (price.compareTo(BigDecimal.ZERO) <= 0) {
             JOptionPane.showMessageDialog(view, "Harga harus lebih dari 0.", "Validasi", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        ServiceItem item = new ServiceItem(type, code, description, qty, price);
+        Integer sparepartId = view.getSelectedSparepartId();
+        Integer serviceId = view.getSelectedServiceId();
+
+        if ("PART".equalsIgnoreCase(type) && sparepartId == null) {
+            JOptionPane.showMessageDialog(view, "Pilih sparepart untuk item tipe PART.", "Validasi", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if ("JASA".equalsIgnoreCase(type) && serviceId == null) {
+            JOptionPane.showMessageDialog(view, "Pilih jasa untuk item tipe JASA.", "Validasi", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        ServiceItem item = new ServiceItem(type, sparepartId, serviceId, description, qty, price);
         view.addDetailRow(item);
         view.clearItemInput();
         refreshTotal();
@@ -122,37 +117,22 @@ public class ServiceTransactionController {
         String customerCode = view.getCustomerCode();
 
         if (serviceNo.isBlank() || customerCode.isBlank()) {
-            JOptionPane.showMessageDialog(
-                    view,
-                    "No. servis dan kode pelanggan wajib diisi.",
-                    "Validasi",
-                    JOptionPane.WARNING_MESSAGE
-            );
+            JOptionPane.showMessageDialog(view, "No. servis dan kode pelanggan wajib diisi.",
+                    "Validasi", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
         if (view.getDetailCount() == 0) {
-            JOptionPane.showMessageDialog(
-                    view,
-                    "Detail item servis masih kosong.",
-                    "Validasi",
-                    JOptionPane.WARNING_MESSAGE
-            );
+            JOptionPane.showMessageDialog(view, "Detail item servis masih kosong.",
+                    "Validasi", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         try {
             BigDecimal total = view.calculateCurrentTotal();
             ServiceTransaction transaction = new ServiceTransaction(
-                    serviceNo,
-                    DateUtil.parse(serviceDateText),
-                    customerCode,
-                    view.getVehicle(),
-                    view.getComplaint(),
-                    view.getMechanic(),
-                    view.getStatus().isBlank() ? "MASUK" : view.getStatus(),
-                    total
-            );
+                    serviceNo, DateUtil.parse(serviceDateText), customerCode,
+                    view.getVehicle(), view.getComplaint(), view.getMechanic(),
+                    view.getStatus().isBlank() ? "MASUK" : view.getStatus(), total);
 
             List<ServiceItem> items = view.getDetailItems();
             dao.save(transaction, items, adminId);
@@ -164,33 +144,23 @@ public class ServiceTransactionController {
         } catch (IllegalArgumentException ex) {
             JOptionPane.showMessageDialog(view, ex.getMessage(), "Validasi", JOptionPane.WARNING_MESSAGE);
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(
-                    view,
-                    "Gagal menyimpan transaksi servis: " + ex.getMessage(),
-                    "Database Error",
-                    JOptionPane.ERROR_MESSAGE
-            );
+            JOptionPane.showMessageDialog(view, "Gagal menyimpan transaksi servis: " + ex.getMessage(),
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void handleUpdateStatus() {
         String serviceNo = view.getSelectedHistoryServiceNo();
         if (serviceNo == null) {
-            JOptionPane.showMessageDialog(view,
-                    "Pilih transaksi dari tabel riwayat terlebih dahulu.",
+            JOptionPane.showMessageDialog(view, "Pilih transaksi dari tabel riwayat terlebih dahulu.",
                     "Validasi", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
         String newStatus = view.getNewStatusSelection();
         int confirm = JOptionPane.showConfirmDialog(view,
                 "Ubah status transaksi " + serviceNo + " menjadi \"" + newStatus + "\"?",
-                "Konfirmasi Ubah Status",
-                JOptionPane.YES_NO_OPTION);
-
-        if (confirm != JOptionPane.YES_OPTION) {
-            return;
-        }
+                "Konfirmasi Ubah Status", JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) return;
 
         try {
             dao.updateStatus(serviceNo, newStatus);
@@ -199,18 +169,13 @@ public class ServiceTransactionController {
             loadHistory();
             dashboardController.loadData();
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(view,
-                    "Gagal mengubah status: " + ex.getMessage(),
+            JOptionPane.showMessageDialog(view, "Gagal mengubah status: " + ex.getMessage(),
                     "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void loadHistory() {
-        try {
-            view.setHistoryRows(dao.findAllSummary());
-        } catch (SQLException ex) {
-            // silent — history is informational
-        }
+        try { view.setHistoryRows(dao.findAllSummary()); } catch (SQLException ex) { /* silent */ }
     }
 
     private void refreshTotal() {
