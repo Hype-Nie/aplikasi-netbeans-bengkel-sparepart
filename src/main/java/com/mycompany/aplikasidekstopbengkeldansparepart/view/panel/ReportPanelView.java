@@ -3,6 +3,7 @@ package com.mycompany.aplikasidekstopbengkeldansparepart.view.panel;
 import com.mycompany.aplikasidekstopbengkeldansparepart.UiTheme;
 import com.mycompany.aplikasidekstopbengkeldansparepart.util.MoneyUtil;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseListener;
 import java.math.BigDecimal;
 import java.util.List;
 import javax.swing.BorderFactory;
@@ -82,6 +83,9 @@ public class ReportPanelView extends javax.swing.JPanel {
     public void addExportServiceCsvListener(ActionListener l) { exportServiceCsvButton.addActionListener(l); }
     public void addExportPurchaseCsvListener(ActionListener l) { exportPurchaseCsvButton.addActionListener(l); }
     public void addExportSaleCsvListener(ActionListener l) { exportSaleCsvButton.addActionListener(l); }
+    public void addServiceTableClickListener(MouseListener l) { serviceTable.addMouseListener(l); }
+    public void addPurchaseTableClickListener(MouseListener l) { purchaseTable.addMouseListener(l); }
+    public void addSaleTableClickListener(MouseListener l) { saleTable.addMouseListener(l); }
 
     // --- Getters ---
     public String getDateFrom() { 
@@ -91,6 +95,21 @@ public class ReportPanelView extends javax.swing.JPanel {
     public String getDateTo() { 
         java.util.Date date = dateToChooser.getDate();
         return date != null ? new java.text.SimpleDateFormat("yyyy-MM-dd").format(date) : ""; 
+    }
+
+    public String getSelectedServiceNo() {
+        int sel = serviceTable.getSelectedRow();
+        return sel >= 0 ? String.valueOf(serviceModel.getValueAt(sel, 0)) : null;
+    }
+
+    public String getSelectedPurchaseNo() {
+        int sel = purchaseTable.getSelectedRow();
+        return sel >= 0 ? String.valueOf(purchaseModel.getValueAt(sel, 0)) : null;
+    }
+
+    public String getSelectedSaleNo() {
+        int sel = saleTable.getSelectedRow();
+        return sel >= 0 ? String.valueOf(saleModel.getValueAt(sel, 0)) : null;
     }
 
     // --- Setters ---
