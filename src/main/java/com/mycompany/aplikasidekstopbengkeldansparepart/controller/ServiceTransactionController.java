@@ -4,14 +4,21 @@ import com.mycompany.aplikasidekstopbengkeldansparepart.dao.CustomerDao;
 import com.mycompany.aplikasidekstopbengkeldansparepart.dao.ServiceDao;
 import com.mycompany.aplikasidekstopbengkeldansparepart.dao.ServiceTransactionDao;
 import com.mycompany.aplikasidekstopbengkeldansparepart.dao.SparepartDao;
+import com.mycompany.aplikasidekstopbengkeldansparepart.model.Customer;
 import com.mycompany.aplikasidekstopbengkeldansparepart.model.ServiceItem;
 import com.mycompany.aplikasidekstopbengkeldansparepart.model.ServiceTransaction;
 import com.mycompany.aplikasidekstopbengkeldansparepart.util.CodeGenerator;
 import com.mycompany.aplikasidekstopbengkeldansparepart.util.DateUtil;
+import com.mycompany.aplikasidekstopbengkeldansparepart.util.ReceiptPrinter;
+import com.mycompany.aplikasidekstopbengkeldansparepart.view.TransactionDetailDialog;
+import java.awt.Frame;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import com.mycompany.aplikasidekstopbengkeldansparepart.view.panel.ServiceTransactionPanelView;
 
 public class ServiceTransactionController {
@@ -45,6 +52,12 @@ public class ServiceTransactionController {
         view.addSaveListener(e -> handleSave());
         view.addNewListener(e -> prepareNewForm());
         view.addUpdateStatusListener(e -> handleUpdateStatus());
+        view.addHistoryClickListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) handleHistoryClick();
+            }
+        });
     }
 
     public void loadReferenceData() {
@@ -137,7 +150,15 @@ public class ServiceTransactionController {
             List<ServiceItem> items = view.getDetailItems();
             dao.save(transaction, items, adminId);
 
-            JOptionPane.showMessageDialog(view, "Transaksi servis berhasil disimpan.");
+            // Prompt to print receipt
+            int printChoice = JOptionPane.showConfirmDialog(view,
+                    "Transaksi servis berhasil disimpan.\nCetak struk?",
+                    "Cetak Struk", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if (printChoice == JOptionPane.YES_OPTION) {
+                String customerName = resolveCustomerName(customerCode);
+                ReceiptPrinter.printServiceReceipt(transaction, items, customerName);
+            }
+
             prepareNewForm();
             loadHistory();
             dashboardController.loadData();
@@ -168,8 +189,49 @@ public class ServiceTransactionController {
                     "Status transaksi " + serviceNo + " berhasil diubah menjadi " + newStatus + ".");
             loadHistory();
             dashboardController.loadData();
+
+            // Prompt to print receipt when status changes to SELESAI
+            if ("SELESAI".equalsIgnoreCase(newStatus)) {
+                int printChoice = JOptionPane.showConfirmDialog(view,
+                        "Servis telah selesai. Cetak struk?",
+                        "Cetak Struk", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                if (printChoice == JOptionPane.YES_OPTION) {
+                    ServiceTransaction tx = dao.findByNo(serviceNo);
+                    if (tx != null) {
+                        List<ServiceItem> items = dao.findItemsByNo(serviceNo);
+                        String customerName = resolveCustomerName(tx.getCustomerCode());
+                        ReceiptPrinter.printServiceReceipt(tx, items, customerName);
+                    }
+                }
+            }
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(view, "Gagal mengubah status: " + ex.getMessage(),
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private String resolveCustomerName(String customerCode) {
+        if (customerCode == null || customerCode.isBlank()) return null;
+        try {
+            for (Customer c : customerDao.findAll()) {
+                if (customerCode.equals(c.getCustomerCode())) return c.getName();
+            }
+        } catch (SQLException ignored) { }
+        return customerCode;
+    }
+
+    private void handleHistoryClick() {
+        String serviceNo = view.getSelectedHistoryServiceNo();
+        if (serviceNo == null) return;
+        try {
+            ServiceTransaction tx = dao.findByNo(serviceNo);
+            if (tx == null) return;
+            List<ServiceItem> items = dao.findItemsByNo(serviceNo);
+            String customerName = resolveCustomerName(tx.getCustomerCode());
+            Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(view);
+            TransactionDetailDialog.showServiceDetail(parentFrame, tx, items, customerName);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(view, "Gagal memuat detail transaksi: " + ex.getMessage(),
                     "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }

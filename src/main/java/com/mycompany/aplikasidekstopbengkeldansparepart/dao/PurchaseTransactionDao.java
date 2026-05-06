@@ -173,4 +173,56 @@ public class PurchaseTransactionDao {
         }
         return rows;
     }
+
+    public PurchaseTransaction findByNo(String purchaseNo) throws SQLException {
+        String sql = """
+                SELECT pt.purchase_no, pt.purchase_date, s.supplier_code,
+                       pt.payment_method, pt.status, pt.total
+                FROM purchase_transactions pt
+                JOIN suppliers s ON s.id = pt.supplier_id
+                WHERE pt.purchase_no = ?
+                """;
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, purchaseNo);
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    return new PurchaseTransaction(
+                        rs.getString("purchase_no"),
+                        rs.getDate("purchase_date").toLocalDate(),
+                        rs.getString("supplier_code"),
+                        rs.getString("payment_method"),
+                        rs.getString("status"),
+                        rs.getBigDecimal("total")
+                    );
+                }
+            }
+        }
+        return null;
+    }
+
+    public List<PurchaseItem> findItemsByNo(String purchaseNo) throws SQLException {
+        String sql = """
+                SELECT pti.part_code, pti.part_name, pti.qty, pti.unit_price
+                FROM purchase_transaction_items pti
+                JOIN purchase_transactions pt ON pt.id = pti.purchase_transaction_id
+                WHERE pt.purchase_no = ?
+                """;
+        List<PurchaseItem> items = new ArrayList<>();
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, purchaseNo);
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    items.add(new PurchaseItem(
+                        rs.getString("part_code"),
+                        rs.getString("part_name"),
+                        rs.getInt("qty"),
+                        rs.getBigDecimal("unit_price")
+                    ));
+                }
+            }
+        }
+        return items;
+    }
 }

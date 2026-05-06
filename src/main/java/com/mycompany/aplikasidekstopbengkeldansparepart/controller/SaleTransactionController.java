@@ -3,15 +3,22 @@ package com.mycompany.aplikasidekstopbengkeldansparepart.controller;
 import com.mycompany.aplikasidekstopbengkeldansparepart.dao.CustomerDao;
 import com.mycompany.aplikasidekstopbengkeldansparepart.dao.SaleTransactionDao;
 import com.mycompany.aplikasidekstopbengkeldansparepart.dao.SparepartDao;
+import com.mycompany.aplikasidekstopbengkeldansparepart.model.Customer;
 import com.mycompany.aplikasidekstopbengkeldansparepart.model.SaleItem;
 import com.mycompany.aplikasidekstopbengkeldansparepart.model.SaleTransaction;
 import com.mycompany.aplikasidekstopbengkeldansparepart.util.CodeGenerator;
 import com.mycompany.aplikasidekstopbengkeldansparepart.util.DateUtil;
+import com.mycompany.aplikasidekstopbengkeldansparepart.util.ReceiptPrinter;
+import com.mycompany.aplikasidekstopbengkeldansparepart.view.TransactionDetailDialog;
 import com.mycompany.aplikasidekstopbengkeldansparepart.view.panel.SaleTransactionPanelView;
+import java.awt.Frame;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 public class SaleTransactionController {
 
@@ -42,6 +49,12 @@ public class SaleTransactionController {
         view.addRemoveItemListener(e -> handleRemoveItem());
         view.addSaveListener(e -> handleSave());
         view.addNewListener(e -> prepareNewForm());
+        view.addHistoryClickListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) handleHistoryClick();
+            }
+        });
     }
 
     public void loadReferenceData() {
@@ -121,7 +134,15 @@ public class SaleTransactionController {
             List<SaleItem> items = view.getDetailItems();
             dao.save(transaction, items, adminId);
 
-            JOptionPane.showMessageDialog(view, "Transaksi penjualan berhasil disimpan.");
+            // Prompt to print receipt
+            int printChoice = JOptionPane.showConfirmDialog(view,
+                    "Transaksi penjualan berhasil disimpan.\nCetak struk?",
+                    "Cetak Struk", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if (printChoice == JOptionPane.YES_OPTION) {
+                String customerName = resolveCustomerName(customerCode);
+                ReceiptPrinter.printSaleReceipt(transaction, items, customerName);
+            }
+
             prepareNewForm();
             loadHistory();
             dashboardController.loadData();
@@ -129,6 +150,32 @@ public class SaleTransactionController {
             JOptionPane.showMessageDialog(view, ex.getMessage(), "Validasi", JOptionPane.WARNING_MESSAGE);
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(view, "Gagal menyimpan transaksi penjualan: " + ex.getMessage(),
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private String resolveCustomerName(String customerCode) {
+        if (customerCode == null || customerCode.isBlank()) return null;
+        try {
+            for (Customer c : customerDao.findAll()) {
+                if (customerCode.equals(c.getCustomerCode())) return c.getName();
+            }
+        } catch (SQLException ignored) { }
+        return customerCode;
+    }
+
+    private void handleHistoryClick() {
+        String saleNo = view.getSelectedHistorySaleNo();
+        if (saleNo == null) return;
+        try {
+            SaleTransaction tx = dao.findByNo(saleNo);
+            if (tx == null) return;
+            List<SaleItem> items = dao.findItemsByNo(saleNo);
+            String customerName = resolveCustomerName(tx.getCustomerCode());
+            Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(view);
+            TransactionDetailDialog.showSaleDetail(parentFrame, tx, items, customerName);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(view, "Gagal memuat detail transaksi: " + ex.getMessage(),
                     "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }

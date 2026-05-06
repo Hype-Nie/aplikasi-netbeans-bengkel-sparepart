@@ -189,4 +189,61 @@ public class ServiceTransactionDao {
         }
         return rows;
     }
+
+    public ServiceTransaction findByNo(String serviceNo) throws SQLException {
+        String sql = """
+                SELECT st.service_no, st.service_date, c.customer_code,
+                       st.vehicle, st.complaint, st.mechanic, st.status, st.total
+                FROM service_transactions st
+                JOIN customers c ON c.id = st.customer_id
+                WHERE st.service_no = ?
+                """;
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, serviceNo);
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    return new ServiceTransaction(
+                        rs.getString("service_no"),
+                        rs.getDate("service_date").toLocalDate(),
+                        rs.getString("customer_code"),
+                        rs.getString("vehicle"),
+                        rs.getString("complaint"),
+                        rs.getString("mechanic"),
+                        rs.getString("status"),
+                        rs.getBigDecimal("total")
+                    );
+                }
+            }
+        }
+        return null;
+    }
+
+    public List<ServiceItem> findItemsByNo(String serviceNo) throws SQLException {
+        String sql = """
+                SELECT sti.item_type, sti.sparepart_id, sti.service_id,
+                       sti.description, sti.qty, sti.price
+                FROM service_transaction_items sti
+                JOIN service_transactions st ON st.id = sti.service_transaction_id
+                WHERE st.service_no = ?
+                """;
+        List<ServiceItem> items = new ArrayList<>();
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, serviceNo);
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    items.add(new ServiceItem(
+                        rs.getString("item_type"),
+                        rs.getObject("sparepart_id", Integer.class),
+                        rs.getObject("service_id", Integer.class),
+                        rs.getString("description"),
+                        rs.getInt("qty"),
+                        rs.getBigDecimal("price")
+                    ));
+                }
+            }
+        }
+        return items;
+    }
 }

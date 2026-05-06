@@ -164,4 +164,57 @@ public class SaleTransactionDao {
         }
         return rows;
     }
+
+    public SaleTransaction findByNo(String saleNo) throws SQLException {
+        String sql = """
+                SELECT st.sale_no, st.sale_date, c.customer_code,
+                       st.payment_method, st.total
+                FROM sale_transactions st
+                LEFT JOIN customers c ON c.id = st.customer_id
+                WHERE st.sale_no = ?
+                """;
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, saleNo);
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    return new SaleTransaction(
+                        rs.getString("sale_no"),
+                        rs.getDate("sale_date").toLocalDate(),
+                        rs.getString("customer_code"),
+                        rs.getString("payment_method"),
+                        rs.getBigDecimal("total")
+                    );
+                }
+            }
+        }
+        return null;
+    }
+
+    public List<SaleItem> findItemsByNo(String saleNo) throws SQLException {
+        String sql = """
+                SELECT sti.sparepart_id, sti.part_code, sti.part_name,
+                       sti.qty, sti.unit_price
+                FROM sale_transaction_items sti
+                JOIN sale_transactions st ON st.id = sti.sale_transaction_id
+                WHERE st.sale_no = ?
+                """;
+        List<SaleItem> items = new ArrayList<>();
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, saleNo);
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    items.add(new SaleItem(
+                        rs.getInt("sparepart_id"),
+                        rs.getString("part_code"),
+                        rs.getString("part_name"),
+                        rs.getInt("qty"),
+                        rs.getBigDecimal("unit_price")
+                    ));
+                }
+            }
+        }
+        return items;
+    }
 }
