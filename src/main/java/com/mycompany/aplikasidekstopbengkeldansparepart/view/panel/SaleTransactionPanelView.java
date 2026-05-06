@@ -290,6 +290,11 @@ public class SaleTransactionPanelView extends javax.swing.JPanel {
     public void addRemoveItemListener(ActionListener l) { removeItemButton.addActionListener(l); }
     public void addSaveListener(ActionListener l) { saveButton.addActionListener(l); }
     public void addNewListener(ActionListener l) { newButton.addActionListener(l); }
+    public void addHistoryClickListener(java.awt.event.MouseListener l) { historyTable.addMouseListener(l); }
+    public String getSelectedHistorySaleNo() {
+        int sel = historyTable.getSelectedRow();
+        return sel >= 0 ? String.valueOf(historyModel.getValueAt(sel, 0)) : null;
+    }
 
     // ===== PUBLIC GETTER METHODS =====
     public String getSaleNo() { return saleNoField.getText().trim(); }
