@@ -217,7 +217,7 @@ public class TransactionDetailDialog extends JDialog {
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         btnPanel.setOpaque(false);
 
-        JButton printBtn = UiTheme.createPrimaryButton("🖨 Cetak Struk");
+        JButton printBtn = UiTheme.createPrimaryButton("Cetak Struk");
         printBtn.addActionListener(e -> printAction.run());
         btnPanel.add(printBtn);
 
