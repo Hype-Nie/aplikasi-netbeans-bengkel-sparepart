@@ -18,6 +18,9 @@ public class DashboardDao {
         int todayServices = querySingleInt(
                 "SELECT COUNT(*) FROM service_transactions WHERE service_date = CURRENT_DATE"
         );
+        int todaySales = querySingleInt(
+                "SELECT COUNT(*) FROM sale_transactions WHERE sale_date = CURRENT_DATE"
+        );
         int monthlyPurchases = querySingleInt(
                 """
                 SELECT COUNT(*)
@@ -26,11 +29,15 @@ public class DashboardDao {
                   AND MONTH(purchase_date) = MONTH(CURRENT_DATE)
                 """
         );
-        BigDecimal todayRevenue = querySingleDecimal(
+        BigDecimal serviceRevenue = querySingleDecimal(
                 "SELECT COALESCE(SUM(total), 0) FROM service_transactions WHERE service_date = CURRENT_DATE"
         );
+        BigDecimal saleRevenue = querySingleDecimal(
+                "SELECT COALESCE(SUM(total), 0) FROM sale_transactions WHERE sale_date = CURRENT_DATE"
+        );
+        BigDecimal todayRevenue = serviceRevenue.add(saleRevenue);
 
-        return new DashboardSummary(activeCustomers, totalStock, todayServices, monthlyPurchases, todayRevenue);
+        return new DashboardSummary(activeCustomers, totalStock, todayServices, todaySales, monthlyPurchases, todayRevenue);
     }
 
     public List<Object[]> findRecentServices(int limit) throws SQLException {
@@ -54,6 +61,36 @@ public class DashboardDao {
                         resultSet.getString("customer_name"),
                         resultSet.getString("vehicle"),
                         resultSet.getString("status"),
+                        resultSet.getBigDecimal("total")
+                    });
+                }
+            }
+        }
+
+        return rows;
+    }
+
+    public List<Object[]> findRecentSales(int limit) throws SQLException {
+        String sql = """
+                SELECT st.sale_no, COALESCE(c.name, 'Umum') AS customer_name,
+                       st.payment_method, st.total
+                FROM sale_transactions st
+                LEFT JOIN customers c ON c.id = st.customer_id
+                ORDER BY st.id DESC
+                LIMIT ?
+                """;
+
+        List<Object[]> rows = new ArrayList<>();
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, limit);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    rows.add(new Object[]{
+                        resultSet.getString("sale_no"),
+                        resultSet.getString("customer_name"),
+                        resultSet.getString("payment_method"),
                         resultSet.getBigDecimal("total")
                     });
                 }

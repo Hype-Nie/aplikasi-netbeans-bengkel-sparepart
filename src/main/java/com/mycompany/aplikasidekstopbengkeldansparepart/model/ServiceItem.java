@@ -5,7 +5,8 @@ import java.math.BigDecimal;
 public class ServiceItem {
 
     private String itemType;
-    private String itemCode;
+    private Integer sparepartId;  // FK to spareparts.id, null when item_type = 'JASA'
+    private Integer serviceId;    // FK to services.id, null when item_type = 'PART'
     private String description;
     private int qty;
     private BigDecimal price;
@@ -13,9 +14,11 @@ public class ServiceItem {
     public ServiceItem() {
     }
 
-    public ServiceItem(String itemType, String itemCode, String description, int qty, BigDecimal price) {
+    public ServiceItem(String itemType, Integer sparepartId, Integer serviceId,
+                        String description, int qty, BigDecimal price) {
         this.itemType = itemType;
-        this.itemCode = itemCode;
+        this.sparepartId = sparepartId;
+        this.serviceId = serviceId;
         this.description = description;
         this.qty = qty;
         this.price = price;
@@ -29,12 +32,20 @@ public class ServiceItem {
         this.itemType = itemType;
     }
 
-    public String getItemCode() {
-        return itemCode;
+    public Integer getSparepartId() {
+        return sparepartId;
     }
 
-    public void setItemCode(String itemCode) {
-        this.itemCode = itemCode;
+    public void setSparepartId(Integer sparepartId) {
+        this.sparepartId = sparepartId;
+    }
+
+    public Integer getServiceId() {
+        return serviceId;
+    }
+
+    public void setServiceId(Integer serviceId) {
+        this.serviceId = serviceId;
     }
 
     public String getDescription() {

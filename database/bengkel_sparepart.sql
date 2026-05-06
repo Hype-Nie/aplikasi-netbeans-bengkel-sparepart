@@ -5,10 +5,13 @@ CREATE DATABASE IF NOT EXISTS bengkel_sparepart
 USE bengkel_sparepart;
 
 SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS sale_transaction_items;
+DROP TABLE IF EXISTS sale_transactions;
 DROP TABLE IF EXISTS purchase_transaction_items;
 DROP TABLE IF EXISTS purchase_transactions;
 DROP TABLE IF EXISTS service_transaction_items;
 DROP TABLE IF EXISTS service_transactions;
+DROP TABLE IF EXISTS services;
 DROP TABLE IF EXISTS spareparts;
 DROP TABLE IF EXISTS suppliers;
 DROP TABLE IF EXISTS customers;
@@ -58,6 +61,15 @@ CREATE TABLE spareparts (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
+-- Master table for service types (jasa)
+CREATE TABLE services (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    service_code VARCHAR(20) NOT NULL UNIQUE,
+    name VARCHAR(120) NOT NULL,
+    price DECIMAL(14,2) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
 CREATE TABLE service_transactions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     service_no VARCHAR(30) NOT NULL UNIQUE,
@@ -78,13 +90,16 @@ CREATE TABLE service_transaction_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     service_transaction_id INT NOT NULL,
     item_type VARCHAR(20) NOT NULL,
-    item_code VARCHAR(30),
+    sparepart_id INT NULL,
+    service_id INT NULL,
     description VARCHAR(200) NOT NULL,
     qty INT NOT NULL,
     price DECIMAL(14,2) NOT NULL,
     subtotal DECIMAL(14,2) NOT NULL,
     CONSTRAINT fk_service_items_header FOREIGN KEY (service_transaction_id) REFERENCES service_transactions(id)
-      ON DELETE CASCADE
+      ON DELETE CASCADE,
+    CONSTRAINT fk_service_items_sparepart FOREIGN KEY (sparepart_id) REFERENCES spareparts(id),
+    CONSTRAINT fk_service_items_service FOREIGN KEY (service_id) REFERENCES services(id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE purchase_transactions (
@@ -115,6 +130,38 @@ CREATE TABLE purchase_transaction_items (
     CONSTRAINT fk_purchase_items_sparepart FOREIGN KEY (sparepart_id) REFERENCES spareparts(id)
 ) ENGINE=InnoDB;
 
+-- Direct spare part counter sales
+CREATE TABLE sale_transactions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    sale_no VARCHAR(30) NOT NULL UNIQUE,
+    sale_date DATE NOT NULL,
+    customer_id INT NULL,
+    payment_method VARCHAR(50),
+    total DECIMAL(14,2) NOT NULL DEFAULT 0,
+    created_by INT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_sale_customer FOREIGN KEY (customer_id) REFERENCES customers(id),
+    CONSTRAINT fk_sale_admin FOREIGN KEY (created_by) REFERENCES admins(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE sale_transaction_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    sale_transaction_id INT NOT NULL,
+    sparepart_id INT NOT NULL,
+    part_code VARCHAR(20) NOT NULL,
+    part_name VARCHAR(120) NOT NULL,
+    qty INT NOT NULL,
+    unit_price DECIMAL(14,2) NOT NULL,
+    subtotal DECIMAL(14,2) NOT NULL,
+    CONSTRAINT fk_sale_items_header FOREIGN KEY (sale_transaction_id) REFERENCES sale_transactions(id)
+      ON DELETE CASCADE,
+    CONSTRAINT fk_sale_items_sparepart FOREIGN KEY (sale_transaction_id) REFERENCES sale_transactions(id)
+) ENGINE=InnoDB;
+
+-- ============================================================
+-- SEED DATA
+-- ============================================================
+
 INSERT INTO admins (username, password, full_name, role, is_active) VALUES
 ('admin', 'admin123', 'Administrator Bengkel', 'ADMIN', 1);
 
@@ -134,16 +181,24 @@ INSERT INTO spareparts (part_code, name, category, unit, purchase_price, selling
 ('SP-0003', 'Busi Iridium', 'Kelistrikan', 'Pcs', 38000, 55000, 40, 8),
 ('SP-0004', 'Filter Udara', 'Mesin', 'Pcs', 24000, 35000, 4, 5);
 
+INSERT INTO services (service_code, name, price) VALUES
+('JS-001', 'Jasa Tune Up', 150000),
+('JS-002', 'Jasa Ganti Oli', 30000),
+('JS-003', 'Jasa Ganti Kampas Rem', 50000),
+('JS-004', 'Jasa Servis Ringan', 75000),
+('JS-005', 'Jasa Servis Besar', 250000);
+
 INSERT INTO service_transactions (service_no, service_date, customer_id, vehicle, complaint, mechanic, status, total, created_by)
 VALUES
 ('SRV-00001', CURRENT_DATE, 1, 'Honda Beat', 'Mesin kasar dan perlu ganti oli', 'Riyan', 'SELESAI', 245000, 1),
-('SRV-00002', CURRENT_DATE, 2, 'Yamaha NMAX', 'Rem depan kurang pakem', 'Asep', 'PROSES', 85000, 1);
+('SRV-00002', CURRENT_DATE, 2, 'Yamaha NMAX', 'Rem depan kurang pakem', 'Asep', 'PROSES', 135000, 1);
 
-INSERT INTO service_transaction_items (service_transaction_id, item_type, item_code, description, qty, price, subtotal)
+INSERT INTO service_transaction_items (service_transaction_id, item_type, sparepart_id, service_id, description, qty, price, subtotal)
 VALUES
-(1, 'JASA', 'JS-001', 'Jasa Tune Up', 1, 150000, 150000),
-(1, 'PART', 'SP-0001', 'Oli Mesin 10W-40', 1, 95000, 95000),
-(2, 'PART', 'SP-0002', 'Kampas Rem Depan', 1, 85000, 85000);
+(1, 'JASA', NULL, 1, 'Jasa Tune Up', 1, 150000, 150000),
+(1, 'PART', 1, NULL, 'Oli Mesin 10W-40', 1, 95000, 95000),
+(2, 'JASA', NULL, 3, 'Jasa Ganti Kampas Rem', 1, 50000, 50000),
+(2, 'PART', 2, NULL, 'Kampas Rem Depan', 1, 85000, 85000);
 
 INSERT INTO purchase_transactions (purchase_no, purchase_date, supplier_id, payment_method, status, total, created_by)
 VALUES
@@ -153,3 +208,12 @@ INSERT INTO purchase_transaction_items (purchase_transaction_id, sparepart_id, p
 VALUES
 (1, 1, 'SP-0001', 'Oli Mesin 10W-40', 20, 75000, 1500000),
 (1, 2, 'SP-0002', 'Kampas Rem Depan', 15, 62000, 930000);
+
+INSERT INTO sale_transactions (sale_no, sale_date, customer_id, payment_method, total, created_by)
+VALUES
+('SAL-00001', CURRENT_DATE, NULL, 'Tunai', 150000, 1);
+
+INSERT INTO sale_transaction_items (sale_transaction_id, sparepart_id, part_code, part_name, qty, unit_price, subtotal)
+VALUES
+(1, 3, 'SP-0003', 'Busi Iridium', 2, 55000, 110000),
+(1, 4, 'SP-0004', 'Filter Udara', 1, 35000, 35000);

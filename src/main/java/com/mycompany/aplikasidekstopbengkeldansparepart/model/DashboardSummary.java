@@ -7,6 +7,7 @@ public class DashboardSummary {
     private final int activeCustomers;
     private final int totalStock;
     private final int todayServices;
+    private final int todaySales;
     private final int monthlyPurchases;
     private final BigDecimal todayRevenue;
 
@@ -14,12 +15,14 @@ public class DashboardSummary {
             int activeCustomers,
             int totalStock,
             int todayServices,
+            int todaySales,
             int monthlyPurchases,
             BigDecimal todayRevenue
     ) {
         this.activeCustomers = activeCustomers;
         this.totalStock = totalStock;
         this.todayServices = todayServices;
+        this.todaySales = todaySales;
         this.monthlyPurchases = monthlyPurchases;
         this.todayRevenue = todayRevenue;
     }
@@ -34,6 +37,10 @@ public class DashboardSummary {
 
     public int getTodayServices() {
         return todayServices;
+    }
+
+    public int getTodaySales() {
+        return todaySales;
     }
 
     public int getMonthlyPurchases() {

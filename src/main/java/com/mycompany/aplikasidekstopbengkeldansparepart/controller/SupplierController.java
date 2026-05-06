@@ -2,12 +2,15 @@ package com.mycompany.aplikasidekstopbengkeldansparepart.controller;
 
 import com.mycompany.aplikasidekstopbengkeldansparepart.dao.SupplierDao;
 import com.mycompany.aplikasidekstopbengkeldansparepart.model.Supplier;
+import com.mycompany.aplikasidekstopbengkeldansparepart.util.CodeGenerator;
 import com.mycompany.aplikasidekstopbengkeldansparepart.util.SimpleDocumentListener;
 import com.mycompany.aplikasidekstopbengkeldansparepart.view.panel.SupplierPanelView;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
 
 public class SupplierController {
+
+    private static final String SUPPLIER_PREFIX = "SUP";
 
     private final SupplierPanelView view;
     private final SupplierDao dao;
@@ -18,14 +21,31 @@ public class SupplierController {
 
         bindActions();
         loadData();
+        prepareNewForm();
     }
 
     private void bindActions() {
-        view.addNewListener(e -> view.clearForm());
+        view.addNewListener(e -> prepareNewForm());
         view.addSaveListener(e -> handleSave());
         view.addDeleteListener(e -> handleDelete());
         view.addRefreshListener(e -> loadData());
         view.addSearchListener((SimpleDocumentListener) event -> view.applySearchFilter(view.getSearchText()));
+    }
+
+    private void prepareNewForm() {
+        view.clearForm();
+        try {
+            String code = dao.getNextSupplierCode(SUPPLIER_PREFIX, CodeGenerator.currentYearMonth());
+            view.setSupplierCode(code);
+            view.focusNameField();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(
+                    view,
+                    "Gagal generate kode supplier: " + ex.getMessage(),
+                    "Database Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
     }
 
     private void handleSave() {
@@ -50,7 +70,7 @@ public class SupplierController {
                 JOptionPane.showMessageDialog(view, "Data supplier berhasil diperbarui.");
             }
 
-            view.clearForm();
+            prepareNewForm();
             loadData();
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(

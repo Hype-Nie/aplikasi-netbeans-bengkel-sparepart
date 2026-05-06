@@ -32,6 +32,7 @@ public class CustomerPanelView extends javax.swing.JPanel {
         styleTextField(vehicleField);
         styleTextField(addressField);
         styleTextField(searchField);
+        codeField.setEditable(false);
 
         // Style buttons
         styleSecondaryButton(newButton);
@@ -155,6 +156,14 @@ public class CustomerPanelView extends javax.swing.JPanel {
         vehicleField.setText("");
         addressField.setText("");
         codeField.requestFocus();
+    }
+
+    public void setCustomerCode(String code) {
+        codeField.setText(code == null ? "" : code);
+    }
+
+    public void focusNameField() {
+        nameField.requestFocus();
     }
 
     public Integer getEditingId() {

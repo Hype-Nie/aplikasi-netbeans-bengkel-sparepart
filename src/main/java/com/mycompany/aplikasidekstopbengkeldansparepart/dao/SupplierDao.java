@@ -2,6 +2,7 @@ package com.mycompany.aplikasidekstopbengkeldansparepart.dao;
 
 import com.mycompany.aplikasidekstopbengkeldansparepart.config.DatabaseConnection;
 import com.mycompany.aplikasidekstopbengkeldansparepart.model.Supplier;
+import com.mycompany.aplikasidekstopbengkeldansparepart.util.CodeGenerator;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,6 +12,30 @@ import java.util.List;
 import java.util.Optional;
 
 public class SupplierDao {
+
+    public String getNextSupplierCode(String prefix, String yearMonth) throws SQLException {
+        String sql = """
+                SELECT supplier_code
+                FROM suppliers
+                WHERE supplier_code LIKE ?
+                ORDER BY supplier_code DESC
+                LIMIT 1
+                """;
+
+        String lastCode = null;
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, CodeGenerator.likePattern(prefix, yearMonth));
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    lastCode = resultSet.getString("supplier_code");
+                }
+            }
+        }
+
+        return CodeGenerator.nextCode(prefix, yearMonth, lastCode);
+    }
 
     public List<Supplier> findAll() throws SQLException {
         String sql = """
