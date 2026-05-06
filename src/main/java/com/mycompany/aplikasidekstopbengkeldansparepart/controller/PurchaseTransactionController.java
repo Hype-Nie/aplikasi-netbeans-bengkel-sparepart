@@ -5,12 +5,19 @@ import com.mycompany.aplikasidekstopbengkeldansparepart.dao.SparepartDao;
 import com.mycompany.aplikasidekstopbengkeldansparepart.dao.SupplierDao;
 import com.mycompany.aplikasidekstopbengkeldansparepart.model.PurchaseItem;
 import com.mycompany.aplikasidekstopbengkeldansparepart.model.PurchaseTransaction;
+import com.mycompany.aplikasidekstopbengkeldansparepart.model.Supplier;
 import com.mycompany.aplikasidekstopbengkeldansparepart.util.CodeGenerator;
 import com.mycompany.aplikasidekstopbengkeldansparepart.util.DateUtil;
+import com.mycompany.aplikasidekstopbengkeldansparepart.util.ReceiptPrinter;
+import com.mycompany.aplikasidekstopbengkeldansparepart.view.TransactionDetailDialog;
+import java.awt.Frame;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import com.mycompany.aplikasidekstopbengkeldansparepart.view.panel.PurchaseTransactionPanelView;
 
 public class PurchaseTransactionController {
@@ -47,6 +54,12 @@ public class PurchaseTransactionController {
         view.addSaveListener(e -> handleSave());
         view.addNewListener(e -> prepareNewForm());
         view.addUpdateStatusListener(e -> handleUpdateStatus());
+        view.addHistoryClickListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) handleHistoryClick();
+            }
+        });
     }
 
     public void loadReferenceData() {
@@ -149,7 +162,15 @@ public class PurchaseTransactionController {
             List<PurchaseItem> items = view.getDetailItems();
             dao.save(transaction, items, adminId);
 
-            JOptionPane.showMessageDialog(view, "Transaksi pembelian berhasil disimpan.");
+            // Prompt to print receipt
+            int printChoice = JOptionPane.showConfirmDialog(view,
+                    "Transaksi pembelian berhasil disimpan.\nCetak struk?",
+                    "Cetak Struk", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if (printChoice == JOptionPane.YES_OPTION) {
+                String supplierName = resolveSupplierName(supplierCode);
+                ReceiptPrinter.printPurchaseReceipt(transaction, items, supplierName);
+            }
+
             prepareNewForm();
             loadHistory();
             dashboardController.loadData();
@@ -188,8 +209,49 @@ public class PurchaseTransactionController {
                     "Status transaksi " + purchaseNo + " berhasil diubah menjadi " + newStatus + ".");
             loadHistory();
             dashboardController.loadData();
+
+            // Prompt to print receipt when status changes to SELESAI
+            if ("SELESAI".equalsIgnoreCase(newStatus)) {
+                int printChoice = JOptionPane.showConfirmDialog(view,
+                        "Pembelian telah selesai. Cetak struk?",
+                        "Cetak Struk", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                if (printChoice == JOptionPane.YES_OPTION) {
+                    PurchaseTransaction tx = dao.findByNo(purchaseNo);
+                    if (tx != null) {
+                        List<PurchaseItem> items = dao.findItemsByNo(purchaseNo);
+                        String supplierName = resolveSupplierName(tx.getSupplierCode());
+                        ReceiptPrinter.printPurchaseReceipt(tx, items, supplierName);
+                    }
+                }
+            }
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(view, "Gagal mengubah status: " + ex.getMessage(),
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private String resolveSupplierName(String supplierCode) {
+        if (supplierCode == null || supplierCode.isBlank()) return null;
+        try {
+            for (Supplier s : supplierDao.findAll()) {
+                if (supplierCode.equals(s.getSupplierCode())) return s.getName();
+            }
+        } catch (SQLException ignored) { }
+        return supplierCode;
+    }
+
+    private void handleHistoryClick() {
+        String purchaseNo = view.getSelectedHistoryPurchaseNo();
+        if (purchaseNo == null) return;
+        try {
+            PurchaseTransaction tx = dao.findByNo(purchaseNo);
+            if (tx == null) return;
+            List<PurchaseItem> items = dao.findItemsByNo(purchaseNo);
+            String supplierName = resolveSupplierName(tx.getSupplierCode());
+            Frame parentFrame = (Frame) SwingUtilities.getWindowAncestor(view);
+            TransactionDetailDialog.showPurchaseDetail(parentFrame, tx, items, supplierName);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(view, "Gagal memuat detail transaksi: " + ex.getMessage(),
                     "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }

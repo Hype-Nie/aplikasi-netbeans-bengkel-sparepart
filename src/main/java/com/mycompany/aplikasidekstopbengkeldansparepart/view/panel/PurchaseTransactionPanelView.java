@@ -186,6 +186,7 @@ public class PurchaseTransactionPanelView extends javax.swing.JPanel {
     public void addSaveListener(ActionListener l) { saveButton.addActionListener(l); }
     public void addNewListener(ActionListener l) { newButton.addActionListener(l); }
     public void addUpdateStatusListener(ActionListener l) { updateStatusButton.addActionListener(l); }
+    public void addHistoryClickListener(java.awt.event.MouseListener l) { historyTable.addMouseListener(l); }
 
     // ===== PUBLIC GETTERS =====
     public String getPurchaseNo() { return purchaseNoField.getText().trim(); }
